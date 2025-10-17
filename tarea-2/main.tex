@@ -1,0 +1,614 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{babel}[spanish]
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Física I \\ \large Tarea 2 - Ejercicio 1}
+\author{Nombre del Estudiante}
+\date{\today}
+
+\lstset{
+  language=Python,
+  backgroundcolor=\color{black!5},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{orange},
+  showstringspaces=false,
+  frame=single,
+  breaklines=true
+}
+
+
+\begin{document}
+\maketitle
+
+\section*{Movimiento de Proyectiles en 2D (sin arrastre)}
+
+\subsection*{1. Ecuaciones de posición y velocidad}
+
+\paragraph{Configuración del problema:} Consideramos un proyectil lanzado desde el origen $(x_0=0, y_0=0)$ con velocidad inicial $v_0$ y ángulo $\theta$ respecto a la horizontal. La única fuerza que actúa es la gravedad, por lo que la aceleración es $\vec a = (0, -g)$, donde $g \approx 9.8 \, \text{m/s}^2$.
+
+\paragraph{Deducción de las ecuaciones:} Partimos de las ecuaciones básicas del movimiento con aceleración constante:
+
+\begin{align*}
+v_x(t) &= v_{0x} + a_x t \\
+v_y(t) &= v_{0y} + a_y t \\
+x(t) &= x_0 + v_{0x} t + \tfrac{1}{2} a_x t^2 \\
+y(t) &= y_0 + v_{0y} t + \tfrac{1}{2} a_y t^2
+\end{align*}
+
+Sustituyendo las condiciones iniciales y las componentes de la aceleración:
+\begin{align*}
+v_{0x} &= v_0 \cos\theta, \quad a_x = 0 \\
+v_{0y} &= v_0 \sin\theta, \quad a_y = -g
+\end{align*}
+
+Obtenemos las ecuaciones finales:
+\begin{align*}
+v_x(t) &= v_0 \cos\theta, \\
+v_y(t) &= v_0 \sin\theta - g t, \\
+x(t) &= v_0 \cos\theta \; t, \\
+y(t) &= v_0 \sin\theta \; t - \tfrac{1}{2} g t^2.
+\end{align*}
+
+\paragraph{Interpretación física:} La velocidad horizontal permanece constante porque no hay aceleración en esa dirección (componente $a_x = 0$), mientras que la velocidad vertical cambia linealmente con el tiempo debido a la aceleración gravitacional.
+
+\subsection*{2. Alcance horizontal}
+
+\paragraph{Tiempo de vuelo:} El proyectil regresa al suelo cuando $y(T)=0$. Resolvemos:
+\begin{align*}
+y(T) &= v_0 \sin\theta \; T - \tfrac{1}{2} g T^2 = 0 \\
+T(v_0 \sin\theta - \tfrac{1}{2} g T) &= 0
+\end{align*}
+
+Las soluciones son $T=0$ (instante inicial) y:
+\begin{align*}
+T &= \frac{2 v_0 \sin\theta}{g}.
+\end{align*}
+
+\paragraph{Alcance horizontal:} Sustituimos el tiempo de vuelo en la ecuación de $x(t)$:
+\begin{align*}
+R(\theta) &= x(T) = v_0 \cos\theta \cdot T 
+= v_0 \cos\theta \cdot \frac{2 v_0 \sin\theta}{g}
+= \frac{2 v_0^2 \sin\theta \cos\theta}{g}.
+\end{align*}
+
+Usando la identidad trigonométrica $\sin(2\theta) = 2\sin\theta\cos\theta$, obtenemos:
+\begin{align*}
+R(\theta) &= \frac{v_0^2}{g} \sin(2\theta).
+\end{align*}
+
+\paragraph{Maximización del alcance:} Para encontrar el ángulo que maximiza $R(\theta)$, derivamos respecto a $\theta$:
+\begin{align*}
+\frac{dR}{d\theta} &= \frac{v_0^2}{g} \cdot 2\cos(2\theta) = 0 \\
+\cos(2\theta) &= 0 \Rightarrow 2\theta = 90^\circ \Rightarrow \theta = 45^\circ.
+\end{align*}
+
+El alcance máximo es:
+\begin{align*}
+R_{\max} &= \frac{v_0^2}{g} \sin(90^\circ) = \frac{v_0^2}{g}.
+\end{align*}
+
+\subsection*{3. Altura máxima}
+
+\paragraph{Tiempo hasta la altura máxima:} La altura máxima ocurre cuando la velocidad vertical se hace cero ($v_y=0$):
+\begin{align*}
+v_y(t_{\text{pico}}) &= v_0 \sin\theta - g t_{\text{pico}} = 0 \\
+t_{\text{pico}} &= \frac{v_0 \sin\theta}{g}.
+\end{align*}
+
+\paragraph{Altura máxima:} Sustituimos $t_{\text{pico}}$ en la ecuación de $y(t)$:
+\begin{align*}
+H(\theta) &= y(t_{\text{pico}}) = v_0 \sin\theta \cdot t_{\text{pico}} - \tfrac{1}{2} g t_{\text{pico}}^2 \\
+&= v_0 \sin\theta \cdot \frac{v_0 \sin\theta}{g} - \tfrac{1}{2} g \left(\frac{v_0 \sin\theta}{g}\right)^2 \\
+&= \frac{v_0^2 \sin^2\theta}{g} - \frac{v_0^2 \sin^2\theta}{2g} = \frac{v_0^2 \sin^2\theta}{2g}.
+\end{align*}
+
+\paragraph{Maximización de la altura:} La altura máxima se alcanza cuando $\sin^2\theta$ es máximo:
+\begin{align*}
+\sin^2\theta_{\text{max}} &= 1 \Rightarrow \theta = 90^\circ \quad (\text{lanzamiento vertical}) \\
+H_{\max} &= \frac{v_0^2}{2g}.
+\end{align*}
+
+\subsection*{4. Relación entre tiempo de vuelo y tiempo de subida}
+
+\paragraph{Simetría del movimiento:} Notamos que $t_{\text{pico}} = \frac{T}{2}$, lo que significa que el tiempo de subida es igual al tiempo de bajada. Esto ocurre porque la aceleración es constante y no hay fuerzas disipativas.
+
+\paragraph{Demostración:}
+\begin{align*}
+t_{\text{pico}} &= \frac{v_0 \sin\theta}{g}, \quad T = \frac{2 v_0 \sin\theta}{g} \Rightarrow t_{\text{pico}} = \frac{T}{2}.
+\end{align*}
+
+\subsection*{5. Observaciones y conclusiones}
+
+\begin{itemize}
+\item \textbf{Alcance máximo:} Ocurre a $45^\circ$ debido a que $\sin(2\theta)$ alcanza su valor máximo de 1 cuando $2\theta = 90^\circ$.
+
+\item \textbf{Altura máxima:} Se maximiza con lanzamiento vertical ($90^\circ$) porque toda la velocidad inicial se dirige contra la gravedad.
+
+\item \textbf{Relación entre $R_{\max}$ y $H_{\max}$:} 
+\begin{align*}
+\frac{R_{\max}}{H_{\max}} = \frac{v_0^2/g}{v_0^2/(2g)} = 2
+\end{align*}
+Para un ángulo de $45^\circ$, el alcance máximo es exactamente el doble de la altura máxima alcanzable con lanzamiento vertical.
+
+\item \textbf{Trade-off:} Existe una compensación entre altura y alcance. Ángulos mayores a $45^\circ$ aumentan la altura pero reducen el alcance, y viceversa.
+
+\item \textbf{Complementariedad de ángulos:} Para un mismo alcance $R$, existen dos ángulos complementarios ($\theta$ y $90^\circ-\theta$) que producen el mismo resultado, excepto cuando $\theta = 45^\circ$.
+\end{itemize}
+
+
+\section*{Planteamiento del problema}
+
+El movimiento parabólico en dos dimensiones sin resistencia del aire está gobernado por el sistema de ecuaciones diferenciales:
+
+\begin{align*}
+\frac{dx}{dt} &= v_x, & \frac{dv_x}{dt} &= 0, \\
+\frac{dy}{dt} &= v_y, & \frac{dv_y}{dt} &= -g,
+\end{align*}
+
+con condiciones iniciales:
+\[
+x(0)=0, \quad y(0)=0, \quad v_x(0)=v_0\cos\theta, \quad v_y(0)=v_0\sin\theta.
+\]
+
+La solución analítica para la trayectoria es:
+\[
+y(x) = x \tan\theta - \frac{g}{2 v_0^2 \cos^2\theta} \, x^2.
+\]
+\section*{Método de Euler para Movimiento de Proyectiles}
+
+\subsection*{Fundamento Matemático}
+
+El método de Euler es un procedimiento numérico de primer orden para resolver ecuaciones diferenciales ordinarias. Para un sistema de la forma:
+\[
+\frac{dy}{dt} = f(t, y)
+\]
+la aproximación discreta es:
+\[
+y_{n+1} = y_n + h f(t_n, y_n),
+\]
+donde $h$ es el paso temporal (tamaño del intervalo de discretización).
+
+\paragraph{Aplicación al movimiento de proyectiles:} Nuestro sistema tiene cuatro variables: posición $(x, y)$ y velocidad $(v_x, v_y)$. Las ecuaciones diferenciales son:
+\begin{align*}
+\frac{dx}{dt} &= v_x \\
+\frac{dy}{dt} &= v_y \\
+\frac{dv_x}{dt} &= 0 \quad \text{(no hay aceleración horizontal)} \\
+\frac{dv_y}{dt} &= -g \quad \text{(aceleración gravitacional)}
+\end{align*}
+
+Aplicando el método de Euler a cada ecuación:
+\begin{align*}
+x_{n+1} &= x_n + h v_{x,n}, \\
+y_{n+1} &= y_n + h v_{y,n}, \\
+v_{x,n+1} &= v_{x,n} + h \cdot 0 = v_{x,n}, \\
+v_{y,n+1} &= v_{y,n} + h (-g) = v_{y,n} - h g.
+\end{align*}
+
+\paragraph{Interpretación física:} Cada paso del método corresponde a:
+\begin{itemize}
+\item \textbf{Posición:} Movemos la partícula según su velocidad actual
+\item \textbf{Velocidad horizontal:} Permanece constante (conservación del momentum)
+\item \textbf{Velocidad vertical:} Disminuye linealmente debido a la gravedad
+\end{itemize}
+
+\subsection*{Implementación en Python: Explicación Paso a Paso}
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily]
+import numpy as np
+import matplotlib.pyplot as plt
+
+# =============================================
+# PARÁMETROS F\'ISICOS Y NUMÉRICOS
+# =============================================
+
+v0 = 20.0      # velocidad inicial [m/s] - típico lanzamiento de proyectil
+theta = np.pi/4  # ángulo de lanzamiento (45 grados = π/4 radianes)
+g = 9.81       # aceleración gravitacional [m/s²] - valor estándar
+h = 0.1        # paso de integración [s] - determina la precisión
+t_max = 3.0    # tiempo máximo de simulación [s] - para evitar loops infinitos
+
+# Explicación: Estos parámetros controlan tanto la física del problema como la
+# precisión del método numérico. Un h más pequeño da mayor precisión pero mayor costo computacional.
+
+# =============================================
+# CONDICIONES INICIALES
+# =============================================
+
+# Descomposición de la velocidad inicial en componentes x e y
+# vx0 = v0 * cos(theta): componente horizontal (coseno = adyacente/hipotenusa)
+# vy0 = v0 * sin(theta): componente vertical (seno = opuesto/hipotenusa)
+vx0 = v0 * np.cos(theta)
+vy0 = v0 * np.sin(theta)
+
+# Listas para almacenar la evolución temporal de las variables
+# Iniciamos en el origen (0,0) con las velocidades calculadas
+x, y = [0.0], [0.0]          # Posiciones iniciales
+vx, vy = [vx0], [vy0]        # Velocidades iniciales
+t_values = [0.0]             # Tiempos (para tracking temporal)
+
+print(f"Condiciones iniciales:")
+print(f"Velocidad inicial: {v0:.2f} m/s")
+print(f"Ángulo: {np.degrees(theta):.1f}°")
+print(f"vx0: {vx0:.2f} m/s, vy0: {vy0:.2f} m/s")
+
+# ======================================
+# MÉTODO DE EULER - INTEGRACIÓN NUMÉRICA
+# ======================================
+
+t = 0.0
+step = 0
+print("\nIniciando integración numérica...")
+
+# El loop continúa mientras el proyectil esté arriba del suelo (y >= 0)
+while y[-1] >= 0 and t < t_max:
+    
+    # --- PASO 1: Calcular nuevas posiciones usando velocidades actuales ---
+    # x_new = x_actual + Δt * vx_actual (movimiento horizontal uniforme)
+    # y_new = y_actual + Δt * vy_actual (movimiento vertical acelerado)
+    x_new = x[-1] + h * vx[-1]
+    y_new = y[-1] + h * vy[-1]
+    
+    # --- PASO 2: Calcular nuevas velocidades ---
+    # vx permanece constante (no hay fuerza horizontal)
+    # vy disminuye debido a la gravedad: vy_new = vy_actual - g*Δt
+    vx_new = vx[-1]  
+    vy_new = vy[-1] - h * g
+    
+    # --- PASO 3: Almacenar los nuevos valores ---
+    x.append(x_new)
+    y.append(y_new)
+    vx.append(vx_new)
+    vy.append(vy_new)
+    t += h
+    t_values.append(t)
+    step += 1
+    
+    # Información de progreso cada 10 pasos
+    if step % 10 == 0:
+        print(f"Paso {step}: t = {t:.2f}s, x = {x_new:.2f}m, y = {y_new:.2f}m")
+
+print(f"Simulación completada: {step} pasos, tiempo final = {t:.2f}s")
+print(f"Alcance numérico: {x[-1]:.2f} m")
+
+# ==================================
+# SOLUCIÓN ANALÍTICA EXACTA (PARA COMPARACIÓN)
+# ==================================
+
+# La solución exacta para movimiento parabólico sin rozamiento:
+# x(t) = v0*cos(θ)*t
+# y(t) = v0*sin(θ)*t - 0.5*g*t²
+# Eliminando el tiempo: y(x) = x*tan(θ) - (g*x²)/(2*v0²*cos²(θ))
+
+print("\nCalculando solución analítica...")
+
+# Crear array de posiciones x para evaluar la trayectoria analítica
+x_analytic = np.linspace(0, max(x), 200)
+
+# Calcular las y correspondientes usando la ecuación de la trayectoria
+# y(x) = x*tan(θ) - (g*x²)/(2*v0²*cos²(θ))
+tan_theta = np.tan(theta)
+cos2_theta = np.cos(theta)**2
+denominador = 2 * v0**2 * cos2_theta
+
+y_analytic = x_analytic * tan_theta - (g * x_analytic**2) / denominador
+
+# También calculamos el alcance teórico exacto
+alcance_teorico = (v0**2 * np.sin(2*theta)) / g
+altura_max_teorica = (v0**2 * np.sin(theta)**2) / (2*g)
+
+print(f"Alcance teórico: {alcance_teorico:.2f} m")
+print(f"Altura máxima teórica: {altura_max_teorica:.2f} m")
+
+# ===========================
+# VISUALIZACIÓN Y COMPARACIÓN
+# ===========================
+
+plt.figure(figsize=(10, 6))
+
+# Graficar solución numérica (método de Euler)
+plt.plot(x, y, 'bo-', markersize=3, linewidth=1, label=f'Euler (h={h}s)')
+
+# Graficar solución analítica exacta
+plt.plot(x_analytic, y_analytic, 'r-', linewidth=2, label='Solución analítica')
+
+# Configuración del gráfico
+plt.xlabel("Distancia horizontal, x [m]", fontsize=12)
+plt.ylabel("Altura, y [m]", fontsize=12)
+plt.title("Trayectoria de Proyectil: Método de Euler vs Solución Analítica", fontsize=14)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+plt.axis('equal')  # Misma escala en ambos ejes para ver la forma real
+
+# Añadir información adicional en el gráfico
+plt.text(0.05, 0.95, f'v₀ = {v0} m/s, θ = {np.degrees(theta):.0f}°', 
+         transform=plt.gca().transAxes, fontsize=10, verticalalignment='top',
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+plt.tight_layout()
+plt.show()
+
+# ===================
+# ANÁLISIS DEL ERROR
+# ==================
+
+print("\n" + "="*50)
+print("ANÁLISIS DE PRECISIÓN")
+print("="*50)
+
+# Calcular error en el alcance
+error_alcance = abs(x[-1] - alcance_teorico)
+error_relativo = (error_alcance / alcance_teorico) * 100
+
+print(f"Alcance numérico: {x[-1]:.4f} m")
+print(f"Alcance teórico:  {alcance_teorico:.4f} m")
+print(f"Error absoluto:   {error_alcance:.4f} m")
+print(f"Error relativo:   {error_relativo:.2f}%")
+
+# Sugerencia para mejorar la precisión
+if error_relativo > 1:
+    print("\nRecomendación: Reducir el paso h para mayor precisión")
+    print(f"Pruebe con h = 0.01 o h = 0.001")
+else:
+    print("\n¡Buena precisión! El método funciona bien para este paso h")
+\end{lstlisting}
+
+\subsection*{Análisis Detallado del Método}
+
+\begin{itemize}
+    \item \textbf{Precisión del método:} El método de Euler es de primer orden, lo que significa que el error es proporcional a $h$. Para pasos grandes ($h=0.1$ s), el error acumulativo es significativo.
+    
+    \item \textbf{Estabilidad:} El método es condicionalmente estable. Para nuestro problema, la estabilidad requiere que $h$ sea suficientemente pequeño comparado con las escalas de tiempo características del sistema.
+    
+    \item \textbf{Convergencia:} Al reducir $h$ ($h=0.01$ s, $h=0.001$ s), la solución numérica converge a la analítica, pero el costo computacional aumenta.
+    
+    \item \textbf{Ventajas:}
+    \begin{itemize}
+        \item Simple implementación
+        \item Fácil de entender
+        \item Bajo costo computacional por paso
+    \end{itemize}
+    
+    \item \textbf{Desventajas:}
+    \begin{itemize}
+        \item Baja precisión para pasos grandes
+        \item Error acumulativo
+        \item Puede volverse inestable para sistemas rígidos
+    \end{itemize}
+    
+    \item \textbf{Mejoras posibles:} Métodos de Runge-Kutta (especialmente RK4) ofrecen mayor precisión con el mismo paso, o la misma precisión con pasos mayores.
+\end{itemize}
+
+
+
+\section*{Método de Euler para Movimiento de Proyectiles}
+
+\subsection*{Fundamento Matemático}
+
+El método de Euler es un procedimiento numérico de primer orden para resolver ecuaciones diferenciales ordinarias. Para un sistema de la forma:
+\[
+\frac{dy}{dt} = f(t, y)
+\]
+la aproximación discreta es:
+\[
+y_{n+1} = y_n + h f(t_n, y_n),
+\]
+donde $h$ es el paso temporal (tamaño del intervalo de discretización).
+
+\paragraph{Aplicación al movimiento de proyectiles:} Nuestro sistema tiene cuatro variables: posición $(x, y)$ y velocidad $(v_x, v_y)$. Las ecuaciones diferenciales son:
+\begin{align*}
+\frac{dx}{dt} &= v_x \\
+\frac{dy}{dt} &= v_y \\
+\frac{dv_x}{dt} &= 0 \quad \text{(no hay aceleración horizontal)} \\
+\frac{dv_y}{dt} &= -g \quad \text{(aceleración gravitacional)}
+\end{align*}
+
+Aplicando el método de Euler a cada ecuación:
+\begin{align*}
+x_{n+1} &= x_n + h v_{x,n}, \\
+y_{n+1} &= y_n + h v_{y,n}, \\
+v_{x,n+1} &= v_{x,n} + h \cdot 0 = v_{x,n}, \\
+v_{y,n+1} &= v_{y,n} + h (-g) = v_{y,n} - h g.
+\end{align*}
+
+\paragraph{Interpretación física:} Cada paso del método corresponde a:
+\begin{itemize}
+\item \textbf{Posición:} Movemos la partícula según su velocidad actual
+\item \textbf{Velocidad horizontal:} Permanece constante (conservación del momentum)
+\item \textbf{Velocidad vertical:} Disminuye linealmente debido a la gravedad
+\end{itemize}
+
+\subsection*{Implementación en Python: Explicación Paso a Paso}
+
+\begin{lstlisting}[language=Python, basicstyle=\small\ttfamily]
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ==================================================
+# PARÁMETROS FÍSICOS Y NUMÉRICOS
+# ==================================================
+
+v0 = 20.0      # velocidad inicial [m/s] - típico lanzamiento de proyectil
+theta = np.pi/4  # ángulo de lanzamiento (45 grados = π/4 radianes)
+g = 9.81       # aceleración gravitacional [m/s²] - valor estándar
+h = 0.1        # paso de integración [s] - determina la precisión
+t_max = 3.0    # tiempo máximo de simulación [s] - para evitar loops infinitos
+
+# Explicación: Estos parámetros controlan tanto la física del problema como la
+# precisión del método numérico. Un h más pequeño da mayor precisión pero mayor costo computacional.
+
+# ==================================================
+# CONDICIONES INICIALES
+# ==================================================
+
+# Descomposición de la velocidad inicial en componentes x e y
+# vx0 = v0 * cos(theta): componente horizontal (coseno = adyacente/hipotenusa)
+# vy0 = v0 * sin(theta): componente vertical (seno = opuesto/hipotenusa)
+vx0 = v0 * np.cos(theta)
+vy0 = v0 * np.sin(theta)
+
+# Listas para almacenar la evolución temporal de las variables
+# Iniciamos en el origen (0,0) con las velocidades calculadas
+x, y = [0.0], [0.0]          # Posiciones iniciales
+vx, vy = [vx0], [vy0]        # Velocidades iniciales
+t_values = [0.0]             # Tiempos (para tracking temporal)
+
+print(f"Condiciones iniciales:")
+print(f"Velocidad inicial: {v0:.2f} m/s")
+print(f"Ángulo: {np.degrees(theta):.1f}°")
+print(f"vx0: {vx0:.2f} m/s, vy0: {vy0:.2f} m/s")
+
+# ==================================================
+# MÉTODO DE EULER - INTEGRACIÓN NUMÉRICA
+# ==================================================
+
+t = 0.0
+step = 0
+print("\nIniciando integración numérica...")
+
+# El loop continúa mientras el proyectil esté arriba del suelo (y >= 0)
+while y[-1] >= 0 and t < t_max:
+    
+    # --- PASO 1: Calcular nuevas posiciones usando velocidades actuales ---
+    # x_new = x_actual + Δt * vx_actual (movimiento horizontal uniforme)
+    # y_new = y_actual + Δt * vy_actual (movimiento vertical acelerado)
+    x_new = x[-1] + h * vx[-1]
+    y_new = y[-1] + h * vy[-1]
+    
+    # --- PASO 2: Calcular nuevas velocidades ---
+    # vx permanece constante (no hay fuerza horizontal)
+    # vy disminuye debido a la gravedad: vy_new = vy_actual - g*Δt
+    vx_new = vx[-1]  
+    vy_new = vy[-1] - h * g
+    
+    # --- PASO 3: Almacenar los nuevos valores ---
+    x.append(x_new)
+    y.append(y_new)
+    vx.append(vx_new)
+    vy.append(vy_new)
+    t += h
+    t_values.append(t)
+    step += 1
+    
+    # Información de progreso cada 10 pasos
+    if step % 10 == 0:
+        print(f"Paso {step}: t = {t:.2f}s, x = {x_new:.2f}m, y = {y_new:.2f}m")
+
+print(f"Simulación completada: {step} pasos, tiempo final = {t:.2f}s")
+print(f"Alcance numérico: {x[-1]:.2f} m")
+
+# ==================================================
+# SOLUCIÓN ANALÍTICA EXACTA (PARA COMPARACIÓN)
+# ==================================================
+
+# La solución exacta para movimiento parabólico sin rozamiento:
+# x(t) = v0*cos(θ)*t
+# y(t) = v0*sin(θ)*t - 0.5*g*t²
+# Eliminando el tiempo: y(x) = x*tan(θ) - (g*x²)/(2*v0²*cos²(θ))
+
+print("\nCalculando solución analítica...")
+
+# Crear array de posiciones x para evaluar la trayectoria analítica
+x_analytic = np.linspace(0, max(x), 200)
+
+# Calcular las y correspondientes usando la ecuación de la trayectoria
+# y(x) = x*tan(θ) - (g*x²)/(2*v0²*cos²(θ))
+tan_theta = np.tan(theta)
+cos2_theta = np.cos(theta)**2
+denominador = 2 * v0**2 * cos2_theta
+
+y_analytic = x_analytic * tan_theta - (g * x_analytic**2) / denominador
+
+# También calculamos el alcance teórico exacto
+alcance_teorico = (v0**2 * np.sin(2*theta)) / g
+altura_max_teorica = (v0**2 * np.sin(theta)**2) / (2*g)
+
+print(f"Alcance teórico: {alcance_teorico:.2f} m")
+print(f"Altura máxima teórica: {altura_max_teorica:.2f} m")
+
+# ==================================================
+# VISUALIZACIÓN Y COMPARACIÓN
+# ==================================================
+
+plt.figure(figsize=(10, 6))
+
+# Graficar solución numérica (método de Euler)
+plt.plot(x, y, 'bo-', markersize=3, linewidth=1, label=f'Euler (h={h}s)')
+
+# Graficar solución analítica exacta
+plt.plot(x_analytic, y_analytic, 'r-', linewidth=2, label='Solución analítica')
+
+# Configuración del gráfico
+plt.xlabel("Distancia horizontal, x [m]", fontsize=12)
+plt.ylabel("Altura, y [m]", fontsize=12)
+plt.title("Trayectoria de Proyectil: Método de Euler vs Solución Analítica", fontsize=14)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+plt.axis('equal')  # Misma escala en ambos ejes para ver la forma real
+
+# Añadir información adicional en el gráfico
+plt.text(0.05, 0.95, f'v₀ = {v0} m/s, θ = {np.degrees(theta):.0f}°', 
+         transform=plt.gca().transAxes, fontsize=10, verticalalignment='top',
+         bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+plt.tight_layout()
+plt.show()
+
+# ==================================================
+# ANÁLISIS DEL ERROR
+# ==================================================
+
+print("\n" + "="*50)
+print("ANÁLISIS DE PRECISIÓN")
+print("="*50)
+
+# Calcular error en el alcance
+error_alcance = abs(x[-1] - alcance_teorico)
+error_relativo = (error_alcance / alcance_teorico) * 100
+
+print(f"Alcance numérico: {x[-1]:.4f} m")
+print(f"Alcance teórico:  {alcance_teorico:.4f} m")
+print(f"Error absoluto:   {error_alcance:.4f} m")
+print(f"Error relativo:   {error_relativo:.2f}%")
+
+# Sugerencia para mejorar la precisión
+if error_relativo > 1:
+    print("\nRecomendación: Reducir el paso h para mayor precisión")
+    print(f"Pruebe con h = 0.01 o h = 0.001")
+else:
+    print("\n¡Buena precisión! El método funciona bien para este paso h")
+\end{lstlisting}
+
+\subsection*{Análisis Detallado del Método}
+
+\begin{itemize}
+    \item \textbf{Precisión del método:} El método de Euler es de primer orden, lo que significa que el error es proporcional a $h$. Para pasos grandes ($h=0.1$ s), el error acumulativo es significativo.
+    
+    \item \textbf{Estabilidad:} El método es condicionalmente estable. Para nuestro problema, la estabilidad requiere que $h$ sea suficientemente pequeño comparado con las escalas de tiempo características del sistema.
+    
+    \item \textbf{Convergencia:} Al reducir $h$ ($h=0.01$ s, $h=0.001$ s), la solución numérica converge a la analítica, pero el costo computacional aumenta.
+    
+    \item \textbf{Ventajas:}
+    \begin{itemize}
+        \item Simple implementación
+        \item Fácil de entender
+        \item Bajo costo computacional por paso
+    \end{itemize}
+    
+    \item \textbf{Desventajas:}
+    \begin{itemize}
+        \item Baja precisión para pasos grandes
+        \item Error acumulativo
+        \item Puede volverse inestable para sistemas rígidos
+    \end{itemize}
+    
+    \item \textbf{Mejoras posibles:} Métodos de Runge-Kutta (especialmente RK4) ofrecen mayor precisión con el mismo paso, o la misma precisión con pasos mayores.
+\end{itemize}
+
+\end{document}
