@@ -1,0 +1,31 @@
+# CHAOS IN THE DRIVEN ONLINEAR PENDULUM
+Now that we have a numerical method that is suitable for various versions of the simple pendulum problem, and armed with some understanding of what might or might not happend when dissipation, an external driving force, and/or nonlinearity is present, we are ready to take on a slughtly more complucated and also more interesting situation. That is, we add all three ingredients which were previously only discusesd separately. First, we do not assume the small-angle aproximation, and do not expand $\sin \theta$ term in (3.1). Second, we include friction of the form $-q(d\theta/dt). Third, we add to our model a sinusoidal driving force $F_D \sin (\Omega_D t)$
+$$
+\frac{d^2\theta}{dt^2} = - \frac{g}{l} \sin theta - q \frac{d\theta}{dt} + F_D \sin(\Omega_D t)
+$$
+
+We will call this model for a nonlinear, damped, driven pendulum, (3.18), the physical pendulum. It contains some very rich and interesting behavior. We will only be able to touch on a few fo its intriguing properties here, although you can explore other through the exercises. Let us begin by examining the behavior of \theta as function of time for several typical cases. Firts we must consturct a program to calculate a numerical solution, since there is no known exact solution to (3.18). Our program is similar in form to the one we used to study the simple pendulum. The only major difference is that we must use a sligtly more complicated equation for $\omega$. We again rewrite (3.18) as two first-order differential equations and obtain
+
+$$
+\frac{d\omega}{dy} = -\frac{g}{l} \sin (\theta) - q \frac{d\theta}{dt} + F_D \sin(\Omega_D t)
+$$
+
+$$
+\frac{d\theta}{dt} = \omega
+$$
+
+These can be converted into difference equations for $\theta_i$ and $\omega_i$ as we did in (3.5). These difference equations can then be translated into a program. Below we sketch the subroutine that does the work of calculating $\theta$ and $\omega$.
+
+
+
+## EXAMPLE 3.3 Subroutine euler_comer_calculate for the physucak pendulum model
+- for each step i (beginning with i = 1), calculate $\omega$ and $\thata$ at time step $i + 1$.
+	- $\omega_{i + 1} = \omega_i - [(g/l)\sin \theta_i - q\omega_i + F_D \sin(\Omega_D t_i)]\Delta t 
+	- $\theta_{i + 1} = \theta_i + $\omega_{i + 1}$ \Delta t
+	- If \theta_{i + 1} is out of the range [-\pi, \pi], add or subtract 2\pi to keep it in this range.
+	- t_{i + 1} = t_i  + \Delta t
+	- Repeat for the desired number of time steps
+
+--
+
+This subrotine is organized much like the euler_cromer_calculate routine for our simple pendulum proram, but there are several differences of note. First, the equatoin for $omega_{i + 1}$ is more complicated since we have a different equation of motion, Second, we adjust the value of $\theta$ after each iteration so as to keep it always its pivot point, which corresponds to $|\theta| > \pi$. Since $\theta$ is angular variable, values of $\theta$ that differ by $2\pi$ correspond to the same position of the pendulum. This is done because for plotting purposes it is convenient to keep $\theta$ in the range $-\pi to \pi$. If $\theta$ becomes less tan $-\pi$, then its value is increased by $2\pi$; likewise, if it becomes greater than $+\pi$ , its valu is decreased by $2\pi$. This procedure keeps $-\pi <= \theta <= +\pi$. Finally, note that we again use de Euler-Cromer method , but the Runge-kutta or Verlet methods wolud be suitable.: 
