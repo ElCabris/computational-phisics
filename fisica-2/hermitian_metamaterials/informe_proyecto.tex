@@ -1,0 +1,509 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Codificación y lenguaje ────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+
+% ── Tipografía y geometría ─────────────────────────────────────────────────────
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{microtype}
+\usepackage{setspace}
+\onehalfspacing
+
+% ── Matemáticas ────────────────────────────────────────────────────────────────
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bm}
+
+% ── Gráficos y colores ─────────────────────────────────────────────────────────
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+
+% ── Código fuente ──────────────────────────────────────────────────────────────
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue!70!black}\bfseries,
+    commentstyle=\color{gray}\itshape,
+    stringstyle=\color{orange!80!black},
+    frame=single,
+    rulecolor=\color{black!20},
+    backgroundcolor=\color{gray!5},
+    breaklines=true,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=6pt,
+    xleftmargin=1.5em,
+}
+\lstdefinelanguage{Fortran90}{
+    morekeywords={module,use,implicit,none,integer,real,complex,parameter,
+                  contains,subroutine,function,end,intent,in,out,inout,
+                  interface,do,if,select,case,stop,write,return,logical},
+    morecomment=[l]{!},
+    morestring=[b]",
+    sensitive=false,
+}
+
+% ── Tablas ──────────────────────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{array}
+
+% ── Hipervínculos ──────────────────────────────────────────────────────────────
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=green!50!black,
+}
+
+% ── Encabezados ────────────────────────────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{gray!70}{\small\textit{hermetic-bands}}}
+\lhead{\textcolor{gray!70}{\small\textit{Física Computacional II}}}
+\cfoot{\thepage}
+
+% ── Cajas destacadas ──────────────────────────────────────────────────────────
+\usepackage{mdframed}
+\newmdenv[
+    linecolor=blue!40,
+    backgroundcolor=blue!4,
+    roundcorner=4pt,
+    linewidth=1pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+]{infobox}
+
+\newmdenv[
+    linecolor=orange!60,
+    backgroundcolor=orange!5,
+    roundcorner=4pt,
+    linewidth=1pt,
+    innerleftmargin=10pt,
+    innerrightmargin=10pt,
+]{warningbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Portada ───────────────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Huge\bfseries \texttt{hermetic-bands}\par}
+    \vspace{0.5cm}
+    {\large Estructura de Bandas Fotónicas de Metamateriales Dispersivos\\
+    Formulada como Problema de Autovalores Hermitiano\par}
+
+    \vspace{1.5cm}
+
+    \begin{tikzpicture}
+        \draw[blue!40, line width=0.5pt] (-6,0) -- (6,0);
+    \end{tikzpicture}
+
+    \vspace{1cm}
+
+    {\large Implementación del método de\\[4pt]
+    \textbf{Raman \& Fan}, \textit{Phys.\ Rev.\ Lett.}\ \textbf{104}, 087401 (2010)\par}
+
+    \vspace{2cm}
+
+    \begin{infobox}
+        \centering
+        \textbf{Lenguajes:} C++17 $\cdot$ Fortran\,90 $\cdot$ CMake\\[4pt]
+        \textbf{Bibliotecas:} ARPACK $\cdot$ LAPACK $\cdot$ BLAS
+    \end{infobox}
+
+    \vfill
+
+    {\large Emanuel Cabrera Novoa\\[4pt]
+    \textit{Física Computacional II}\\[4pt]
+    \today\par}
+\end{titlepage}
+
+% ── Tabla de contenidos ───────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{¿Qué es este proyecto?}
+
+\texttt{hermetic-bands} es un solucionador numérico de la \textbf{estructura de bandas fotónicas} de cristales fotónicos 2D que contienen inclusiones metálicas plasmónicas. La idea central es calcular las frecuencias propias (autofrecuencias) que la luz puede tener al propagarse en un metamaterial periódico, cuyo comportamiento dieléctrico depende de la frecuencia---lo que lo convierte en un \textit{sistema dispersivo}.
+
+El desafío físico-matemático es que el metal sigue el \textbf{modelo de Drude sin pérdidas}:
+
+\begin{equation}
+    \varepsilon(\omega) = \varepsilon_\infty \left(1 - \frac{\omega_p^2}{\omega^2}\right),
+    \label{eq:drude}
+\end{equation}
+
+donde $\omega_p$ es la frecuencia de plasma y $\varepsilon_\infty$ la permitividad a frecuencia infinita. Esta dependencia en $\omega$ hace que las ecuaciones de Maxwell no formen directamente un problema de autovalores estándar---la frecuencia aparece a ambos lados de la ecuación, de manera no lineal.
+
+\subsection{La solución clave: reformulación Hermitiana}
+
+El aporte fundamental de Raman \& Fan (2010) consiste en demostrar que, añadiendo una variable auxiliar de polarización $\mathbf{V} = \partial\mathbf{P}/\partial t$ (la velocidad de polarización de Drude), el sistema Maxwell$+$Drude puede escribirse como:
+
+\begin{equation}
+    \omega \, A\, \mathbf{x} = B\, \mathbf{x},
+    \label{eq:generalized}
+\end{equation}
+
+donde $A$ es una matriz \textit{definida positiva} y diagonal. Mediante la transformación de congruencia $\hat{\mathbf{y}} = \sqrt{A}\,\mathbf{x}$, se llega a un problema de autovalores \textbf{estándar y Hermitiano}:
+
+\begin{equation}
+    \omega \,\hat{\mathbf{y}} = \hat{H}\, \hat{\mathbf{y}}, \qquad
+    \hat{H} = \left(\sqrt{A}\right)^{-1} B \left(\sqrt{A}\right)^{-1}.
+    \label{eq:hermitian}
+\end{equation}
+
+Esto garantiza autovalores \textit{reales} (frecuencias físicas) y permite usar algoritmos de álgebra lineal numérica de alta confiabilidad.
+
+\begin{infobox}
+    \textbf{Importancia física:} Las soluciones $\omega > 0$ corresponden a modos propagantes de luz en el metamaterial. La estructura de bandas resultante (frecuencia vs.\ vector de onda de Bloch $k$) revela bandas prohibidas fotónicas (\textit{band gaps}), bandas plasmónicas, y la física de modos localizados en la interfaz metal-aire.
+\end{infobox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Arquitectura y composición del proyecto}
+
+El proyecto se organiza en tres capas bien diferenciadas: la \textbf{física} (malla, operadores, ensamblaje), la \textbf{numerics} (solucionador de autovalores, álgebra lineal), y la \textbf{interfaz} (CLI, salida de datos). A continuación se describe cada capa.
+
+\subsection{Árbol de directorios}
+
+\begin{lstlisting}[language=bash, caption={Estructura de archivos del proyecto}]
+hermetic-bands/
+  src/                   # Implementaciones C++ (8 modulos)
+    main.cpp             # Punto de entrada CLI
+    yee_grid.cpp         # Geometria y mascaras de material
+    operators.cpp        # Operadores de rotor discretos
+    matrices.cpp         # Ensamblaje del Hamiltoniano Hermitiano
+    eigensolver.cpp      # Bucle de comunicacion inversa ARPACK
+    perturbation.cpp     # Correcciones perturbativas de perdida
+    sparse.cpp           # Matriz dispersa CSR y algebra
+    output.cpp           # Escritura de bandas y perfiles de campo
+    utils.cpp            # Parametros CLI y tipos comunes
+  include/               # Cabeceras (.hpp) de cada modulo
+  fortran/               # Modulos Fortran
+    precision_kinds.f90  # Tipos de precision con iso_c_binding
+    arpack_interface.f90 # Interfaces explicitas a znaupd/zneupd
+    lanczos_helpers.f90  # Post-procesado de autovectores
+  CMakeLists.txt         # Sistema de construccion CMake
+  Makefile               # Alternativa para construccion directa
+\end{lstlisting}
+
+\subsection{Diagrama de dependencias}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=1.2cm and 1.8cm,
+    box/.style={rectangle, rounded corners=4pt, draw, minimum width=2.8cm,
+                minimum height=0.7cm, font=\small\ttfamily, align=center},
+    fbox/.style={box, fill=orange!15, draw=orange!60},
+    cbox/.style={box, fill=blue!10, draw=blue!50},
+    lbox/.style={box, fill=green!12, draw=green!50},
+    arr/.style={-Stealth, thick, gray!70}
+]
+
+% C++ layer
+\node[cbox] (main)       {main.cpp};
+\node[cbox, below=of main] (eigen)  {eigensolver};
+\node[cbox, left=2cm of eigen] (mats)   {matrices};
+\node[cbox, right=2cm of eigen] (pert)   {perturbation};
+\node[cbox, below=of mats]  (ops)    {operators};
+\node[cbox, below=of ops]   (yee)    {yee\_grid};
+\node[cbox, below=of eigen] (sparse) {sparse};
+\node[cbox, right=2cm of sparse] (out)    {output};
+
+% Fortran layer
+\node[fbox, below=2cm of sparse] (arpack\_if) {arpack\_interface.f90};
+\node[fbox, left=2cm of arpack\_if] (prec)   {precision\_kinds.f90};
+\node[fbox, right=2cm of arpack\_if] (lanc)   {lanczos\_helpers.f90};
+
+% External libraries
+\node[lbox, below=of arpack\_if] (arpack) {ARPACK\,(Fortran)};
+\node[lbox, left=2cm of arpack]  (lapack) {LAPACK};
+\node[lbox, right=2cm of arpack] (blas)   {BLAS};
+
+% Arrows C++
+\draw[arr] (main) -- (eigen);
+\draw[arr] (main) -- (mats);
+\draw[arr] (main) -- (pert);
+\draw[arr] (main) -- (out);
+\draw[arr] (eigen) -- (sparse);
+\draw[arr] (mats) -- (ops);
+\draw[arr] (ops) -- (yee);
+\draw[arr] (mats) -- (sparse);
+
+% C++ -> Fortran boundary
+\draw[arr, dashed, orange!70, line width=1.2pt]
+    (eigen) -- node[right,font=\tiny,black]{\texttt{extern "C"}} (arpack\_if);
+\draw[arr, dashed, orange!70, line width=1.2pt] (eigen) -- (lanc);
+
+% Fortran internal
+\draw[arr] (arpack\_if) -- (prec);
+\draw[arr] (lanc) -- (prec);
+\draw[arr] (lanc) -- (arpack\_if);
+
+% Fortran -> Libraries
+\draw[arr] (arpack\_if) -- (arpack);
+\draw[arr] (arpack\_if) -- (lapack);
+\draw[arr] (arpack\_if) -- (blas);
+
+\end{tikzpicture}
+\end{center}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Las partes que componen el proyecto}
+
+\subsection{Módulo \texttt{yee\_grid} — Geometría y material}
+
+La región de simulación es una celda unitaria cuadrada de lado $a$, dividida en $N\times N$ celdas uniformes (paso $\Delta = a/N$). Se usa la \textbf{malla de Yee escalonada}: los campos eléctrico y magnético se sitúan en posiciones desplazadas media celda entre sí, lo que es la discretización estándar de las ecuaciones de Maxwell en diferencias finitas.
+
+\begin{table}[h]
+    \centering
+    \caption{Posición de los campos en la malla de Yee (modo TM)}
+    \begin{tabular}{@{}lll@{}}
+        \toprule
+        Campo & Posición & Significado \\
+        \midrule
+        $E_z[i,j]$ & $(i\Delta,\,j\Delta)$ & Nodo primario (centro de cuadro) \\
+        $H_x[i,j]$ & $(i\Delta,\,(j+\tfrac{1}{2})\Delta)$ & Arista horizontal \\
+        $H_y[i,j]$ & $((i+\tfrac{1}{2})\Delta,\,j\Delta)$ & Arista vertical \\
+        $V_z[i,j]$ & $(i\Delta,\,j\Delta)$ & Auxiliar de Drude (solo en metal) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+El módulo construye también las \textit{máscaras de material}: vectores booleanos que indican qué nodos de la malla pertenecen al metal (inclusión cuadrada o circular) y cuáles al aire. A partir de estas máscaras se definen los perfiles de $\varepsilon_\infty$ y $\omega_p$.
+
+\subsection{Módulo \texttt{operators} — Operadores de rotor discretos}
+
+Las ecuaciones de Faraday ($\nabla\times\mathbf{E} = +i\omega\mu_0\mathbf{H}$) y Ampère ($\nabla\times\mathbf{H} = -i\omega\varepsilon\mathbf{E}$) se discretizan con diferencias finitas hacia adelante y hacia atrás respectivamente. Las condiciones de contorno \textbf{periódicas de Bloch} se incorporan multiplicando por las fases $e^{\pm ik_x}$, $e^{\pm ik_y}$ al cruzar el borde de la celda. La propiedad clave es:
+
+\begin{equation}
+    C_H = C_E^\dagger \qquad (\text{adjunto en el sentido Hermitiano})
+\end{equation}
+
+garantizando que el Hamiltoniano $\hat{H}$ resultante sea Hermitiano para el caso sin pérdidas.
+
+\subsection{Módulo \texttt{matrices} — Ensamblaje del Hamiltoniano}
+
+Este módulo construye el sistema Hermitiano de la ecuación~\eqref{eq:hermitian}. Las matrices se almacenan en formato \textbf{CSR} (\textit{Compressed Sparse Row}) para ahorrar memoria y acelerar el producto matriz-vector.
+
+El operador de desplazamiento-inversión $(\hat{H} - \sigma I)^{-1}$ se factoriza \textbf{una sola vez} mediante la rutina \texttt{zgetrf}/\texttt{zgetrs} de LAPACK, y se reutiliza en cada iteración de ARPACK.
+
+\subsection{Módulo \texttt{eigensolver} — Solucionador de autovalores}
+
+Es el núcleo del programa. Implementa el \textbf{método de Arnoldi implícitamente reiniciado} (IRLM) en modo desplazamiento-inversión, usando la interfaz de comunicación inversa de ARPACK. El flujo es:
+
+\begin{enumerate}
+    \item ARPACK llama iterativamente a \texttt{znaupd} construyendo un subespacio de Krylov de dimensión $n_{cv}$.
+    \item En cada paso, el programa resuelve $\mathbf{y} = (\hat{H} - \sigma I)^{-1}\mathbf{x}$ aplicando la factorización LU ya calculada.
+    \item Al converger (código IDO\,$=$\,99), \texttt{zneupd} extrae los valores de Ritz y vectores de Ritz.
+    \item Los autovalores físicos se recuperan invirtiendo la transformación: $\omega = \sigma + 1/\lambda$.
+\end{enumerate}
+
+\begin{warningbox}
+    \textbf{¿Por qué \texttt{znaupd} y no \texttt{dsaupd}?} Aunque $\hat{H}$ es Hermitiano, las condiciones de contorno de Bloch producen entradas \textit{complejas} en $\hat{H}$ para $k\in(0,\pi)$. Las variantes reales de ARPACK (\texttt{dsaupd}/\texttt{dseupd}) no pueden manejar matrices complejas, por lo que se usan las variantes complejas (\texttt{znaupd}/\texttt{zneupd}) a lo largo de todo el camino $\Gamma\to X$.
+\end{warningbox}
+
+\subsection{Módulo \texttt{perturbation} — Correcciones perturbativas de pérdida}
+
+Para amortiguamiento pequeño $\Gamma$ (caso con pérdidas), la corrección de primer orden a la frecuencia propia es (ec.\ 15 de Raman \& Fan):
+
+\begin{equation}
+    \omega_1 = \frac{i\Gamma}{2} \cdot
+    \frac{\displaystyle\int_{\text{metal}} |\mathbf{V}_0|^2 / (\varepsilon_\infty\,\omega_p^2)\,dV}
+         {\displaystyle\int W_0\,dV},
+\end{equation}
+
+donde $W_0$ es la densidad de energía del modo sin pérdidas. Esta corrección es puramente imaginaria, lo que produce el decaimiento esperado de los modos.
+
+\subsection{Módulo \texttt{output} — Salida de datos}
+
+Produce los archivos de resultados:
+\begin{itemize}
+    \item \texttt{bands.dat}: frecuencias vs.\ $k_x/\pi$ para todas las bandas (listo para graficar con gnuplot).
+    \item \texttt{loss\_comparison.dat}: comparación entre la pérdida perturbativa y la solución no Hermitiana exacta.
+    \item \texttt{field\_mode\textit{n}\_k\textit{i}.dat}: perfil espacial de los campos $|E_z|^2$, $|H_x|^2$, $|H_y|^2$, $|V_z|^2$.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{La idea por encima de los métodos}
+
+Toda la maquinaria numérica del proyecto puede resumirse en tres ideas encadenadas:
+
+\begin{enumerate}
+    \item \textbf{Reformular el problema físico.} La dispersión del metal (modelo de Drude) hace que la ecuación de autovalores sea no lineal en $\omega$. Introducir la variable auxiliar $\mathbf{V}$ amplía el espacio de estados pero convierte el problema en \textit{lineal} y \textit{Hermitiano}.
+
+    \item \textbf{Discretizar preservando la estructura algebraica.} La malla de Yee con fases de Bloch garantiza que los operadores de rotor sean adjuntos entre sí, lo que transfiere la hermiticidad del problema continuo al discreto. No es una discretización arbitraria: fue elegida precisamente para preservar esa propiedad.
+
+    \item \textbf{Resolver solo lo que se necesita.} La matriz $\hat{H}$ puede tener miles de filas, pero solo se necesitan las primeras $n_{\text{bands}}$ frecuencias (las más bajas). El método de Arnoldi con desplazamiento-inversión extrae exactamente esas bandas sin diagonalizar la matriz completa, factorizando $(\hat{H}-\sigma I)$ \textit{una sola vez} y reutilizando la factorización en cada iteración.
+\end{enumerate}
+
+\begin{infobox}
+    \textbf{Escala de la malla:} Para $N=20$ puntos por lado, el modo TM tiene $4N^2 = 1600$ grados de libertad. La factorización LU densa ocupa $\sim 41$\,MB. Para $N=30$, son $\sim 207$\,MB---aún manejable en una laptop moderna. Más allá de $N\approx40$, sería preferible un solucionador disperso (PARDISO, MUMPS).
+\end{infobox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{La importancia de combinar C/C++ con Fortran}
+
+\subsection{¿Por qué usar dos lenguajes?}
+
+La elección de combinar C++17 con Fortran\,90 no es arbitraria ni un accidente histórico: responde a una división natural de responsabilidades entre lo que cada lenguaje hace mejor.
+
+\subsection{El papel de Fortran: interfaz con ARPACK y LAPACK}
+
+ARPACK y LAPACK son bibliotecas escritas en Fortran con décadas de madurez y optimización. Su interfaz de llamada usa semántica Fortran:
+
+\begin{itemize}
+    \item \textbf{Arrays de forma asumida:} Fortran puede declarar \texttt{v(ldv,ncv)} y pasar el descriptor completo; desde C++ esto requeriría manipulación cuidadosa del puntero crudo.
+    \item \textbf{Argumentos CHARACTER:} Las rutinas ARPACK usan \texttt{CHARACTER(2)} para seleccionar el modo (\texttt{'LM'}, \texttt{'SM'}, \texttt{'LR'}...). La terminación de cadenas en C (\texttt{'\textbackslash 0'}) es diferente a la de Fortran (espacios), y mezclarlas desde C++ introduce errores sutiles de ABI.
+    \item \textbf{Orden de columnas:} Fortran usa almacenamiento columna-mayor (\textit{column-major}). Las matrices de Lanczos $V$ deben organizarse así para que ARPACK las lea correctamente.
+\end{itemize}
+
+El módulo \texttt{arpack\_interface.f90} resuelve todos estos problemas proporcionando bloques de interfaz explícitos que el compilador Fortran puede verificar en tipos:
+
+\begin{lstlisting}[language=Fortran90, caption={Fragmento de arpack\_interface.f90}]
+interface
+    subroutine znaupd(ido, bmat, n, which, nev, tol, resid, ncv, &
+                      v, ldv, iparam, ipntr, workd, workl, lworkl, &
+                      rwork, info)
+        use precision_kinds
+        integer(ip), intent(inout) :: ido
+        character,   intent(in)    :: bmat
+        character(2),intent(in)    :: which
+        complex(zp), intent(inout) :: resid(n)
+        ...
+    end subroutine znaupd
+end interface
+\end{lstlisting}
+
+El módulo \texttt{precision\_kinds.f90} garantiza compatibilidad de ABI usando \texttt{iso\_c\_binding}:
+
+\begin{lstlisting}[language=Fortran90, caption={precision\_kinds.f90 — compatibilidad de tipos C/Fortran}]
+module precision_kinds
+    use iso_c_binding, only: c_double, c_int
+    implicit none
+    integer, parameter :: dp = c_double   ! coincide con double de C++
+    integer, parameter :: ip = c_int      ! coincide con int de C++
+    integer, parameter :: zp = kind(cmplx(1.0_dp, 1.0_dp, kind=dp))
+end module precision_kinds
+\end{lstlisting}
+
+Esto asegura que un \texttt{complex(zp)} de Fortran y un \texttt{std::complex<double>} de C++ tengan exactamente el mismo diseño en memoria: dos \texttt{double} de 8 bytes consecutivos, compatible con IEEE\,754.
+
+\subsection{El papel de C++: lógica de alto nivel}
+
+C++ se encarga de todo lo que requiere flexibilidad y abstracción:
+
+\begin{itemize}
+    \item \textbf{Estructuras de datos:} \texttt{YeeGrid}, \texttt{SimParams}, \texttt{EigenResult}, \texttt{CSRMatrix}—tipos con semántica de valor, constructores, y gestión automática de memoria (RAII).
+    \item \textbf{Análisis de argumentos CLI:} Parseo de opciones (\texttt{--mode}, \texttt{--resolution}, \texttt{--fill-fraction}, etc.) con validación y mensajes de error claros.
+    \item \textbf{Bucle de comunicación inversa:} El bucle que interpreta los códigos IDO de ARPACK (\texttt{-1}, \texttt{1}, \texttt{2}, \texttt{99}) y despacha el producto matriz-vector o la resolución LU se implementa limpiamente en C++.
+    \item \textbf{Salida:} Formato de archivos \texttt{.dat} para gnuplot, manejo de múltiples modos de exportación.
+\end{itemize}
+
+La llamada cruzada C++\,$\to$\,Fortran se realiza con \texttt{extern "C"}, que desactiva el \textit{name mangling} de C++ y usa la convención de llamada de C, que es la misma que usa gfortran para símbolos exportados:
+
+\begin{lstlisting}[language=C++, caption={Declaracion extern "C" en eigensolver.cpp}]
+extern "C" {
+    void znaupd_(int* ido, char* bmat, int* n, char* which,
+                 int* nev, double* tol, std::complex<double>* resid,
+                 int* ncv, std::complex<double>* v, int* ldv,
+                 int* iparam, int* ipntr, std::complex<double>* workd,
+                 std::complex<double>* workl, int* lworkl,
+                 double* rwork, int* info);
+}
+\end{lstlisting}
+
+\subsection{Resumen: división de responsabilidades}
+
+\begin{table}[h]
+    \centering
+    \caption{División de responsabilidades entre C++ y Fortran}
+    \begin{tabular}{@{}p{4cm}p{5cm}p{5cm}@{}}
+        \toprule
+        \textbf{Tarea} & \textbf{Lenguaje} & \textbf{Razón} \\
+        \midrule
+        Interfaz con ARPACK & Fortran & ABI nativo, tipos seguros \\
+        Tipos de precisión & Fortran (\texttt{iso\_c\_binding}) & Garantía de layout binario \\
+        Post-proc.\ de Ritz & Fortran & Sintaxis de array nativa eficiente \\
+        Ensamblaje de matrices & C++ & Estructuras de datos flexibles \\
+        Malla y geometría & C++ & Abstracción orientada a objetos \\
+        Bucle inverso ARPACK & C++ & Lógica de control clara \\
+        CLI y salida & C++ & Ecosistema de herramientas rico \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{infobox}
+    \textbf{Conclusión:} La combinación C++$+$Fortran no es un compromiso sino una elección óptima. Fortran actúa como capa de pegamento tipo-segura con las bibliotecas numéricas maduras (ARPACK, LAPACK, BLAS), mientras que C++ provee la infraestructura de software moderna necesaria para un código mantenible, extensible y correcto. Separar ambas responsabilidades en capas distintas hace que cada parte sea más simple, más fácil de depurar, y más portable.
+\end{infobox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Flujo de ejecución completo}
+
+El programa sigue el siguiente flujo cuando se invoca desde la línea de comandos:
+
+\begin{enumerate}
+    \item \textbf{Parseo de parámetros} (\texttt{utils.cpp}): modo de polarización (TM/TE), resolución $N$, fracción de relleno metálico, forma de la inclusión, número de bandas, etc.
+    \item \textbf{Construcción de la malla} (\texttt{yee\_grid.cpp}): $N\times N$ celdas, máscaras de material.
+    \item \textbf{Barrido de puntos $k$} sobre el camino $\Gamma\to X$ ($k_x$ de $0$ a $\pi/a$):
+    \begin{enumerate}
+        \item Ensamblaje de $\hat{H}$ en formato CSR (\texttt{matrices.cpp}).
+        \item Factorización LU de $(\hat{H}-\sigma I)$ con LAPACK.
+        \item Bucle de Arnoldi con ARPACK hasta convergencia.
+        \item Recuperación y ordenamiento de autofrecuencias.
+    \end{enumerate}
+    \item \textbf{Escritura de \texttt{bands.dat}} (\texttt{output.cpp}).
+    \item \textbf{(Opcional)} Cálculo de pérdidas perturbativas y exportación de perfiles de campo.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Dependencias y construcción}
+
+El sistema de construcción principal es CMake ($\geq$ 3.16), que maneja la compilación en dos pasos: primero compila los fuentes Fortran como una biblioteca estática (\texttt{hermetic\_fortran}), generando los archivos \texttt{.mod} necesarios; luego compila los fuentes C++ y enlaza todo junto.
+
+\begin{lstlisting}[language=bash, caption={Construccion con CMake}]
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j$(nproc)
+./hermetic-bands --mode TM --resolution 20 --fill-fraction 0.25 \
+                 --nk 40 --nbands 10 --output bands.dat
+\end{lstlisting}
+
+Las dependencias requeridas son:
+
+\begin{table}[h]
+    \centering
+    \caption{Bibliotecas externas del proyecto}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        Biblioteca & Propósito & Arch Linux & Ubuntu/Debian \\
+        \midrule
+        ARPACK  & Solucionador IRLM       & \texttt{arpack}        & \texttt{libarpack2-dev} \\
+        LAPACK  & LU densa (\texttt{zgetrf}) & \texttt{lapack}     & \texttt{liblapack-dev} \\
+        BLAS    & Kernels nivel 1/2       & (incluido con LAPACK)  & \texttt{libblas-dev} \\
+        gfortran & Runtime Fortran        & \texttt{gcc-fortran}   & \texttt{gfortran} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Referencia original}
+
+\begin{quote}
+    A.~Raman y S.~Fan,\\
+    \textit{``Photonic Band Structure of Dispersive Metamaterials Formulated as a Hermitian Eigenvalue Problem,''}\\
+    \textbf{Phys.\ Rev.\ Lett.\ 104}, 087401 (2010).\\
+    DOI: \href{https://doi.org/10.1103/PhysRevLett.104.087401}{10.1103/PhysRevLett.104.087401}
+\end{quote}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\end{document}
