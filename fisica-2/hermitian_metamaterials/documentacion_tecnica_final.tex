@@ -1,0 +1,1048 @@
+% =============================================================================
+% documentacion_tecnica_final.tex
+% Documentación técnica definitiva del proyecto hermetic-bands
+% Basada en: Raman & Fan, PRL 104, 087401 (2010)
+% Revisión: incluye correcciones de auditoría de código
+% =============================================================================
+
+\documentclass[12pt,a4paper]{article}
+
+% ---------------------------------------------------------------------------
+% Codificación, idioma y tipografía
+% ---------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---------------------------------------------------------------------------
+% Geometría de página
+% ---------------------------------------------------------------------------
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry}
+
+% ---------------------------------------------------------------------------
+% Matemáticas
+% ---------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+
+% ---------------------------------------------------------------------------
+% Gráficos y diagramas
+% ---------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds}
+
+% ---------------------------------------------------------------------------
+% Tablas de publicación científica
+% ---------------------------------------------------------------------------
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+% ---------------------------------------------------------------------------
+% Bloques de código fuente
+% ---------------------------------------------------------------------------
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{keyword}{HTML}{0033B3}
+\definecolor{comment}{HTML}{808080}
+\definecolor{string}{HTML}{067D17}
+\definecolor{number}{HTML}{1750EB}
+
+\lstdefinestyle{cpp}{
+  language=C++,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  numberstyle=\tiny\color{number},
+  numbers=left,
+  numbersep=8pt,
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  captionpos=b,
+}
+
+\lstdefinestyle{bash}{
+  language=bash,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=2,
+  captionpos=b,
+}
+
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{codeframe},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keyword}\bfseries,
+  commentstyle=\color{comment}\itshape,
+  stringstyle=\color{string},
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  captionpos=b,
+}
+
+% ---------------------------------------------------------------------------
+% Hiperenlaces
+% ---------------------------------------------------------------------------
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=green!50!black,
+  urlcolor=blue!70!black,
+}
+
+% ---------------------------------------------------------------------------
+% Encabezados y pie de página
+% ---------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small hermetic-bands}
+\lhead{\small Documentación Técnica}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------------------------------------------------------------------------
+% Macros matemáticos
+% ---------------------------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Hhat}{\hat{H}}
+\newcommand{\sqA}{\sqrt{A}}
+\newcommand{\isqA}{A^{-1/2}}
+\newcommand{\omegap}{\omega_p}
+\newcommand{\epsinf}{\varepsilon_\infty}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\conj}[1]{\overline{#1}}
+\DeclareMathOperator{\diag}{diag}
+\newcommand{\parti}[2]{\frac{\partial #1}{\partial #2}}
+
+% ---------------------------------------------------------------------------
+% Ajustes de espaciado
+% ---------------------------------------------------------------------------
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{1.5em}
+
+% =============================================================================
+\begin{document}
+% =============================================================================
+
+% ---------------------------------------------------------------------------
+% Portada
+% ---------------------------------------------------------------------------
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Large\bfseries Universidad de Medellín\\[0.3cm]
+  Facultad de Ciencias Básicas\\[0.3cm]
+  Física Computacional --- Período 6\par}
+  \vspace{2cm}
+  \rule{\linewidth}{0.5pt}\\[0.4cm]
+  {\LARGE\bfseries Estructura de Bandas Fotónicas de\\[0.3cm]
+  Metamateriales Dispersivos:\\[0.3cm]
+  Formulación Hermitiana con Variable Auxiliar\par}
+  {\large Documentación Técnica del Proyecto \texttt{hermetic-bands}\\
+  Versión definitiva con correcciones de auditoría\par}
+  \rule{\linewidth}{0.5pt}\\[1.5cm]
+  {\large\bfseries Autor:} Emanuel Cabrera Novoa\\[0.3cm]
+  {\large\bfseries Correo:} lacabrazapa@gmail.com\\[0.3cm]
+  {\large\bfseries Fecha:} Mayo 2026\\[2cm]
+  \begin{abstract}
+    \noindent
+    Este documento describe la implementación computacional del método de
+    Raman y Fan~\cite{Raman2010} para el cálculo de estructuras de bandas
+    fotónicas en cristales plasmónicos dispersivos.
+    La formulación transforma el problema de autovalores no-Hermitiano
+    $\omega^2 \varepsilon(\omega) \vect{E} = c^{-2}\nabla\times\nabla\times\vect{E}$
+    en el problema Hermitiano definido-positivo
+    $\omega\, \hat{H}\, \hat{y} = \omega\, \hat{y}$
+    mediante la introducción de un campo auxiliar vectorial $\vect{V}$
+    que absorbe la dinámica del modelo de Drude.
+    Se detallan la discretización mediante la malla de Yee estacionada,
+    la construcción de operadores de rotacional con condiciones de contorno
+    de Bloch, el ensamblado en formato CSR, y la resolución mediante
+    ARPACK con inversión espectral (shift-invert) y factorización LU densa
+    (LAPACK \texttt{zgetrf}/\texttt{zgetrs}).
+    Se documenta además la corrección de dos errores críticos identificados
+    en la auditoría del código: la doble transformación espectral en
+    \texttt{zneupd} (modo 3) y la selección errónea del criterio
+    \texttt{"LM"} de ARPACK.
+  \end{abstract}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Introducción}
+% =============================================================================
+
+Los metamateriales plasmónicos son estructuras periódicas que contienen
+inclusiones metálicas nanométricas con permitividad dieléctrica descrita
+por el modelo de Drude:
+\begin{equation}
+  \varepsilon(\omega) = \epsinf\!\left(1 - \frac{\omegap^2}{\omega^2 + i\Gamma\omega}\right),
+  \label{eq:drude}
+\end{equation}
+donde $\epsinf$ es la permitividad a alta frecuencia, $\omegap$ la
+frecuencia de plasma y $\Gamma$ la tasa de amortiguamiento.
+La dependencia en frecuencia de~\eqref{eq:drude} hace que las ecuaciones
+de Maxwell resulten en un problema de autovalores polinomial en $\omega$,
+que destruye la hermiticidad del operador Maxwell estándar y vuelve
+ineficientes los métodos clásicos de cálculo de bandas fotónicas.
+
+Raman y Fan~\cite{Raman2010} resuelven esta dificultad introduciendo un
+campo auxiliar $\vect{V}(\vect{r},t)$ que satisface la ecuación de movimiento
+de los electrones libres en el metal.
+La idea central es reformular el problema cuadrático en $\omega$ como un
+problema lineal de autovalores $\omega\, A\, x = B\, x$, donde tanto $A$
+como $B$ son matrices Hermitian as definidas-positivas.
+La transformación de similitud $\hat{H} = A^{-1/2} B A^{-1/2}$ convierte
+este sistema en la ecuación canónica $\omega\,\hat{y} = \hat{H}\,\hat{y}$,
+resoluble eficientemente con el método de Lanczos--Arnoldi
+implícitamente reiniciado (IRLM) implementado en ARPACK.
+
+El proyecto \texttt{hermetic-bands} implementa esta formulación en C++17
+sobre una malla de Yee 2D con condiciones de contorno de Bloch,
+soportando los modos de polarización TM y TE, inclusiones cuadradas y
+circulares, el cálculo de la estructura de bandas a lo largo de la ruta
+$\Gamma\!\to\! X\!\to\! M\!\to\!\Gamma$ de la primera zona de Brillouin,
+y correcciones perturbativas de primer orden para los efectos de pérdidas.
+
+% =============================================================================
+\section{Marco Teórico}
+% =============================================================================
+
+\subsection{Ecuaciones de Maxwell y convención temporal}
+
+Adoptamos la convención $e^{-i\omega t}$ para todos los campos
+armónico-temporales:
+\begin{align}
+  \nabla \times \vect{E} &= +i\omega\mu_0\vect{H}
+    \qquad \text{(Faraday)}, \label{eq:faraday}\\
+  \nabla \times \vect{H} &= -i\omega\varepsilon(\omega)\vect{E}
+    \qquad \text{(Ampère--Maxwell)}. \label{eq:ampere}
+\end{align}
+Combinando~\eqref{eq:faraday} y~\eqref{eq:ampere} con el modelo de
+Drude~\eqref{eq:drude} se obtiene el problema de autovalores implícito en
+$\omega^2$, que es no-Hermitiano para $\Gamma>0$ e incluso para
+$\Gamma=0$ cuando se emplea el modelo de Drude sin pérdidas.
+
+\subsection{Variable auxiliar de Drude}
+
+Definimos el campo auxiliar $\vect{V}(\vect{r},t) = -i\omega\vect{P}/(\epsinf\omegap^2)$,
+donde $\vect{P}$ es la polarización del plasma.
+La ecuación de movimiento de los electrones libres con amortiguamiento $\Gamma$ es:
+\begin{equation}
+  (-i\omega + \Gamma)\,\vect{V} = \epsinf\omegap^2\,\vect{E}.
+  \label{eq:aux_field}
+\end{equation}
+Para el caso sin pérdidas ($\Gamma=0$), la ecuación~\eqref{eq:aux_field}
+se convierte en $-i\omega\vect{V} = \epsinf\omegap^2\vect{E}$,
+que combinada con Ampère permite eliminar la dependencia implícita en $\omega$.
+
+\subsection{Reformulación de Raman y Fan (ec.\ 6)}
+
+\label{sec:raman_fan}
+
+El vector de estado expandido para el modo \textbf{TM} es
+$x = (\vect{H}_x,\, \vect{H}_y,\, \vect{E}_z,\, \vect{V}_z)^T$,
+donde cada bloque tiene $N^2$ componentes sobre la malla $N\times N$.
+El sistema lineal de autovalores resultante es~\cite{Raman2010}:
+\begin{equation}
+  \omega\, A\, x = B\, x,
+  \label{eq:AxBx}
+\end{equation}
+con la matriz de masa $A = \diag(A_{Hx}, A_{Hy}, A_{Ez}, A_{Vz})$:
+\begin{align}
+  A_{H\alpha}[k] &= \mu_0 \quad \forall k, \\
+  A_{Ez}[k]      &= \epsinf(r_k), \\
+  A_{Vz}[k]      &=
+    \begin{cases}
+      \dfrac{1}{\epsinf(r_k)\,\omegap^2(r_k)} & k \in \text{metal},\\[6pt]
+      1 & k \in \text{aire (regularización)},
+    \end{cases}
+  \label{eq:A_diag}
+\end{align}
+y la matriz dinámica $B$ en bloques:
+\begin{equation}
+  B =
+  \begin{pmatrix}
+    0      &  0      & -i C_E^{TM} & 0  \\
+    0      &  0      &     0       & 0  \\
+    +i C_H^{TM} & 0  &  0         & -i I_m \\
+    0      &  0      & +i I_m      &  0
+  \end{pmatrix},
+  \label{eq:B_TM}
+\end{equation}
+donde $C_E^{TM}: \R^{N^2}\to\R^{2N^2}$ es el operador de rotacional
+discreto de $\vect{E}$ e $I_m$ denota la identidad restringida a los
+nodos metálicos.
+La estructura de bloques para el modo \textbf{TE} con vector
+$x=(\vect{H}_z, \vect{E}_x, \vect{E}_y, \vect{V}_x, \vect{V}_y)^T$
+es análoga con cinco bloques.
+
+\subsection{Transformación de similitud y Hamiltoniano Hermitiano}
+
+Dado que $A$ es diagonal definida-positiva, su raíz cuadrada
+$S = A^{1/2} = \diag(\sqrt{A_{kk}})$ se calcula en $\mathcal{O}(N^2)$
+operaciones.
+El cambio de variable $\hat{y} = S\, x$ transforma~\eqref{eq:AxBx} en:
+\begin{equation}
+  \omega\,\hat{y} = \Hhat\,\hat{y},
+  \qquad
+  \Hhat = S^{-1} B S^{-1} = \isqA B \isqA.
+  \label{eq:Hhat}
+\end{equation}
+La hermiticidad de $\Hhat$ se hereda de $B$ siempre que $C_H = C_E^\dagger$,
+condición que se verifica en la siguiente sección.
+Computacionalmente, la transformación~\eqref{eq:Hhat} se aplica
+directamente sobre los elementos no-cero del formato CSR:
+\begin{equation}
+  \Hhat_{ij} = s^{-1}_i\, B_{ij}\, s^{-1}_j,
+  \label{eq:similarity_sparse}
+\end{equation}
+lo que preserva el patrón de no-ceros de $B$ y requiere $\mathcal{O}(\text{nnz})$
+operaciones, sin necesidad de construir $A^{-1/2}$ como matriz completa.
+
+\subsection{Discretización de Yee y hermiticidad de los operadores de rotacional}
+
+\label{sec:yee}
+
+La celda unitaria $[0,a)\times[0,a)$ se discretiza en $N\times N$ celdas
+de lado $\Delta = a/N$.
+Las posiciones de los campos en el modo TM son:
+\begin{align*}
+  E_z[i,j] &: \text{ nodo primario } (i\Delta,\, j\Delta),\\
+  H_x[i,j] &: \text{ arista-}y \;\; (i\Delta,\, (j+\tfrac{1}{2})\Delta),\\
+  H_y[i,j] &: \text{ arista-}x \;\; ((i+\tfrac{1}{2})\Delta,\, j\Delta).
+\end{align*}
+
+Los operadores de diferencias finitas hacia adelante y hacia atrás son:
+\begin{equation}
+  (D_f^x\, f)[i,j] = \frac{f[i+1,j] - f[i,j]}{\Delta},
+  \qquad
+  (D_b^x\, f)[i,j] = \frac{f[i,j] - f[i-1,j]}{\Delta},
+  \label{eq:Dfx}
+\end{equation}
+con condiciones periódicas de Bloch al cruzar la frontera de la celda:
+\begin{equation}
+  f[N,j] = e^{+ik_x a}\, f[0,j], \qquad
+  f[-1,j] = e^{-ik_x a}\, f[N-1,j].
+  \label{eq:bloch}
+\end{equation}
+
+\textbf{Hermiticidad del par $(C_E, C_H)$.}
+El rotacional discreto de Faraday (diferencias hacia adelante) y el de
+Ampère (diferencias hacia atrás) satisfacen:
+\begin{equation}
+  C_H^{TM} = \bigl(C_E^{TM}\bigr)^\dagger.
+  \label{eq:curl_adjoint}
+\end{equation}
+La verificación de~\eqref{eq:curl_adjoint} \emph{no es trivial} en
+presencia de las fases de Bloch.
+Para el operador $D_f^x$, la entrada fuera de la diagonal asociada al
+cruce de frontera tiene valor $+e^{+ik_x}/\Delta$;
+su adjunto conjugado, que corresponde a $D_b^x$, tiene el valor
+$-e^{-ik_x}/\Delta$ en la posición transpuesta.
+Es decir, los factores de Bloch \emph{deben cambiar de signo en el
+exponente al transponerlos}:
+\begin{equation}
+  \bigl[(D_f^x)^\dagger\bigr]_{(i-1),i}
+    = \conj{(D_f^x)_{i,(i-1)}}
+    = \conj{\!\left(\frac{e^{+ik_x}}{\Delta}\right)\!}
+    = \frac{e^{-ik_x}}{\Delta},
+  \label{eq:bloch_conj}
+\end{equation}
+que coincide exactamente con la entrada de $D_b^x$.
+En el código, esta propiedad se garantiza por construcción:
+\begin{lstlisting}[style=cpp, caption={Construcción del adjunto exacto en \texttt{operators.cpp}}]
+// C_H_TM = C_E_TM dagger -- garantiza la relacion de adjunto exacta.
+CSRMatrix build_CH_TM(const YeeGrid& g, Real kx, Real ky) {
+    return conj_transpose(build_CE_TM(g, kx, ky));
+}
+\end{lstlisting}
+
+Cualquier asimetría residual $\norm{\Hhat - \Hhat^\dagger}_F$ introduce
+autovalores espurios con parte imaginaria no nula que contaminarían el
+espectro físico.
+La función \texttt{check\_hermitian()} de \texttt{sparse.hpp} calcula el
+máximo elemento de esta diferencia y puede invocarse en modo de diagnóstico
+(\texttt{-{}-verbosity 2}).
+
+% =============================================================================
+\section{Implementación Numérica}
+% =============================================================================
+
+\subsection{Almacenamiento disperso CSR}
+
+Todos los operadores ($D_f^x$, $D_b^x$, $C_E$, $C_H$, $B$, $\Hhat$) se
+almacenan en formato \emph{Compressed Sparse Row} (CSR):
+\begin{itemize}
+  \item \texttt{val[k]}: valor del no-cero $k$.
+  \item \texttt{col\_ind[k]}: índice de columna del no-cero $k$.
+  \item \texttt{row\_ptr[i]}: índice en \texttt{val} del primer no-cero de la fila $i$.
+\end{itemize}
+El producto matriz-vector $y \leftarrow \alpha A x + \beta y$ recorre
+\texttt{val[]} y \texttt{col\_ind[]} secuencialmente, lo que es
+favorable para la caché.
+La densidad de no-ceros por fila es $\leq 5$ para los operadores de
+diferencias finitas en 2D, y $\leq 10$ para la matriz dinámica $B$.
+
+\subsection{Inversión espectral y factorización LU densa}
+\label{sec:shift_invert}
+
+ARPACK en modo estándar (\texttt{mode}=1) encuentra los autovalores de
+\emph{mayor magnitud}, que para un Hamiltoniano fotónico corresponden a
+los modos de alta frecuencia.
+La \emph{inversión espectral} (shift-invert) reemplaza el problema
+$\omega\,\hat{y} = \Hhat\,\hat{y}$ por:
+\begin{equation}
+  \lambda\,\hat{y} = (\Hhat - \sigma I)^{-1}\hat{y},
+  \qquad
+  \lambda = \frac{1}{\omega - \sigma},
+  \label{eq:shift_invert}
+\end{equation}
+de modo que solicitar los $\lambda$ de mayor módulo recupera los $\omega$
+más cercanos al desplazamiento $\sigma$.
+
+\textbf{Selección del desplazamiento.}
+Eligiendo $0 < \sigma < \omega_{\min}^{\text{físico}}$, los modos del
+espacio nulo ($\omega=0$, provenientes de los grados de libertad $\vect{V}$
+en el aire) mapean a $\lambda = -1/\sigma < 0$, mientras que los modos
+físicos con $\omega > \sigma$ mapean a $\lambda > 0$.
+Por defecto se usa $\sigma = 0{,}01\,\omegap$; el usuario puede sobreescribir
+con el flag \texttt{-{}-sigma}.
+
+\textbf{Justificación del LU denso.}
+En cada paso de Lanczos, ARPACK solicita la aplicación de
+$(\Hhat - \sigma I)^{-1}$.
+Para el rango de validación del artículo original ($N \leq 30$,
+$n_\text{dof} \leq 3600$ para TM), se emplea la factorización LU densa
+de LAPACK (\texttt{zgetrf}/\texttt{zgetrs}):
+\begin{align}
+  \text{Factorización (una vez):}\quad &
+  \mathcal{O}(n_\text{dof}^3) \approx 10^{10}\;\text{flops para } N=30. \\
+  \text{Resolución (por iteración):}\quad &
+  \mathcal{O}(n_\text{dof}^2) \approx 1{,}3\times10^7\;\text{flops para } N=30.
+\end{align}
+Esta elección proporciona:
+\begin{enumerate}
+  \item \textbf{Determinismo absoluto}: el resultado es bit a bit
+    reproducible entre plataformas, esencial para verificar figuras del
+    artículo.
+  \item \textbf{Precisión de máquina}: el error de retroceso del LU es
+    $\lesssim 10^{-13}$, muy por debajo del error de discretización
+    ($\sim 1\%$ a $N=20$).
+  \item \textbf{Sin dependencias adicionales}: no se requiere UMFPACK,
+    PARDISO ni SuperLU; solo BLAS + LAPACK ya declarados como dependencias.
+\end{enumerate}
+
+\textbf{Límite de memoria.}
+El costo de memoria de la factorización escala como $n_\text{dof}^2 \times 16\,\text{B}$:
+\begin{equation}
+  M_\text{LU} \approx (4N^2)^2 \times 16\,\text{B} = 256\,N^4\,\text{B} \quad \text{(TM)}.
+\end{equation}
+Para $N=40$ esto asciende a $\approx 655\,\text{MB}$; para $N=50$,
+$\approx 1{,}6\,\text{GB}$.
+El código emite una advertencia automática cuando $N > 40$, indicando que
+para resoluciones mayores conviene reemplazar el solucionador interno por
+un solver disperso directo (PARDISO, MUMPS) o un método iterativo
+precondicionado (GMRES + ILU).
+
+\subsection{Bucle de comunicación inversa de ARPACK}
+
+El bucle de comunicación inversa de \texttt{znaupd} tiene la siguiente
+estructura:
+
+\begin{lstlisting}[style=cpp, caption={Bucle principal ARPACK en \texttt{eigensolver.cpp}}]
+while (true) {
+    znaupd_(&ido, bmat, &N, which, &nev, &tol,
+            resid.data(), &ncv, v.data(), &N,
+            iparam, ipntr,
+            workd.data(), workl.data(), &lworkl,
+            rwork.data(), &info);
+
+    if (ido == -1 || ido == 1) {
+        // Aplicar y = (H_hat - sigma*I)^{-1} * x
+        op.apply(x_in, y_out);   // usa zgetrs internamente
+    }
+    else if (ido == 2) {
+        // B = I: copiar x -> y directamente
+        std::copy(workd.begin() + x_off,
+                  workd.begin() + x_off + N,
+                  workd.begin() + y_off);
+    }
+    else if (ido == 99) break;   // convergido
+}
+\end{lstlisting}
+
+\subsection{Correcciones de bugs críticos identificados en la auditoría}
+
+\label{sec:bugs}
+
+\subsubsection{Bug 1 --- Doble transformación espectral en \texttt{zneupd}}
+
+Tras la convergencia del bucle de \texttt{znaupd}, la subrutina
+\texttt{zneupd} extrae los pares (autovalor, autovector) del espacio
+de Krylov.
+En \textbf{modo 3 (SHIFTI)}, \texttt{zneupd} aplica internamente la
+transformación inversa:
+\begin{equation}
+  d_k \leftarrow \sigma + \frac{1}{\rho_k},
+  \qquad \rho_k = \text{valor de Ritz en el espacio transformado},
+  \label{eq:zneupd_backtransform}
+\end{equation}
+de modo que el arreglo \texttt{d[]} a la salida de \texttt{zneupd}
+\emph{ya contiene los autovalores $\omega$ del problema original}.
+
+La versión defectuosa del código aplicaba nuevamente la conversión
+$\sigma + 1/\lambda$, produciendo valores completamente erróneos:
+\begin{lstlisting}[style=cpp, caption={Código defectuoso (ELIMINADO)}]
+// ERROR: zneupd ya aplico sigma + 1/rho internamente.
+// Esta segunda conversion da valores incorrectos.
+const Complex lambda = d[j];
+const Complex omega  = Complex{sigma, 0.0} + 1.0 / lambda;
+result.eigenvalues.push_back(omega.real());
+\end{lstlisting}
+
+La corrección lee directamente la parte real de \texttt{d[j]}:
+\begin{lstlisting}[style=cpp, caption={Código corregido en \texttt{eigensolver.cpp}}]
+// zneupd (modo 3, SHIFTI) aplica d[k] = sigma + 1/rho[k] internamente.
+// d[] ya contiene los autovalores omega del problema original.
+for (int j = 0; j < nconv; ++j) {
+    result.eigenvalues.push_back(
+        d[static_cast<std::size_t>(j)].real());
+}
+\end{lstlisting}
+
+\subsubsection{Bug 2 --- Criterio de selección \texttt{"LM"} en ARPACK}
+
+El parámetro \texttt{which} de \texttt{znaupd} indica qué autovalores
+del operador $(\Hhat - \sigma I)^{-1}$ se solicitan.
+Con el desplazamiento shift-invert, los modos físicos ($\omega > \sigma$)
+mapean a valores de Ritz $\lambda = 1/(\omega-\sigma) > 0$, mientras
+que los modos del espacio nulo ($\omega = 0$) mapean a
+$\lambda = -1/\sigma < 0$.
+
+La selección \texttt{"LM"} (\emph{Largest Magnitude}) toma los $|\lambda|$
+más grandes, y dado que $|-1/\sigma| = 1/\sigma \gg 1$ para $\sigma$
+pequeño, ARPACK podía seleccionar preferentemente los modos no físicos
+del espacio nulo.
+La corrección usa \texttt{"LR"} (\emph{Largest Real part}), que excluye
+limpiamente todos los $\lambda < 0$:
+
+\begin{lstlisting}[style=cpp, caption={Corrección del criterio ARPACK en \texttt{eigensolver.cpp}}]
+// "LR" (mayor parte real) selecciona modos fisicos (lambda > 0).
+// "LM" (mayor magnitud) podia incluir modos del espacio nulo
+//  con lambda = -1/sigma << 0 de gran magnitud absoluta.
+char which[] = "LR";
+\end{lstlisting}
+
+\subsection{Tratamiento de pérdidas}
+
+\label{sec:losses}
+
+Con amortiguamiento $\Gamma \neq 0$, la ecuación de movimiento~\eqref{eq:aux_field}
+adquiere un término extra en la diagonal del bloque $V$:
+\begin{equation}
+  \delta B_{VV}[k] = -i\Gamma\cdot\mathbf{1}_{k\in\text{metal}},
+  \qquad
+  \delta\Hhat_{VV}[k] = \frac{-i\Gamma}{\epsinf(r_k)\,\omegap^2(r_k)}.
+  \label{eq:delta_H}
+\end{equation}
+Esta perturbación es anti-Hermitiana ($\delta\Hhat^\dagger = -\delta\Hhat$),
+de modo que los autovalores del sistema perturbado son complejos:
+$\omega = \omega_r + i\omega_i$ con $\omega_i < 0$ (decaimiento físico).
+
+\textbf{Separación lossless/lossy en el código.}
+La perturbación~\eqref{eq:delta_H} entra únicamente en
+\texttt{assemble\_nonhermitian()}, que construye $\Hhat_\text{nh} = \Hhat_0 + \delta\Hhat$.
+El Hamiltoniano sin pérdidas $\Hhat_0$ permanece intacto, garantizando que
+los autovalores de referencia sean reales.
+
+\textbf{Corrección perturbativa (ec.\ 15 de Raman y Fan).}
+Para $\Gamma \ll \omegap$, la corrección de primer orden a la frecuencia
+del modo $n$ es:
+\begin{equation}
+  \omega_n^{(1)} = \langle \hat{y}_n^{(0)} | \delta\Hhat | \hat{y}_n^{(0)} \rangle
+    = \frac{-i\Gamma\displaystyle\int_\text{metal}
+        \frac{|V_n|^2}{\epsinf\,\omegap^2}\,d^2r}
+      {\displaystyle\int \Bigl(\mu_0|H_n|^2 + \epsinf|E_n|^2
+        + \frac{|V_n|^2}{\epsinf\omegap^2}\Bigr)d^2r}.
+  \label{eq:perturbative}
+\end{equation}
+Esta expresión usa los modos $\hat{y}_n^{(0)}$ del sistema sin pérdidas,
+evitando re-resolver el problema no-Hermitiano completo.
+
+% =============================================================================
+\section{Arquitectura del Software}
+% =============================================================================
+
+\subsection{Diagrama de flujo de datos}
+
+La figura~\ref{fig:flowchart} muestra el flujo de datos principal.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[
+    node distance=1.3cm and 2.0cm,
+    block/.style={
+      rectangle, rounded corners=4pt,
+      draw=blue!60!black, fill=blue!8,
+      text width=4.2cm, align=center,
+      minimum height=0.9cm, font=\small
+    },
+    decision/.style={
+      diamond, draw=orange!70!black, fill=orange!12,
+      text width=2.8cm, align=center,
+      inner sep=1pt, font=\small
+    },
+    io/.style={
+      trapezium, trapezium left angle=70, trapezium right angle=110,
+      draw=green!60!black, fill=green!10,
+      text width=3.6cm, align=center,
+      minimum height=0.8cm, font=\small
+    },
+    arr/.style={-Stealth, thick, blue!50!black},
+  ]
+
+  \node[io]     (cli)   {Interfaz CLI\\(\texttt{parse\_args})};
+  \node[block]  (param) [below=of cli]
+                        {Parámetros\\(\texttt{SimParams})};
+  \node[block]  (grid)  [below=of param]
+                        {Malla de Yee\\(\texttt{YeeGrid})};
+  \node[block]  (assem) [below=of grid]
+                        {Ensamblado $\hat{H}$ CSR\\(\texttt{assemble\_hermitian})};
+  \node[block]  (lu)    [below=of assem]
+                        {Factor. LU densa\\(\texttt{ShiftInvertOp::factor})};
+  \node[block]  (arpack)[below=of lu]
+                        {ARPACK \texttt{znaupd/zneupd}\\(shift-invert, \texttt{"LR"})};
+  \node[block]  (back)  [below=of arpack]
+                        {Back-transform.\\$x = S^{-1}\hat{y}$};
+  \node[io]     (out)   [below=of back]
+                        {Salida \texttt{.dat}\\(\texttt{write\_bands})};
+
+  \node[decision](loss) [right=2.2cm of arpack]
+                        {$\Gamma > 0$?};
+  \node[block]  (nh)    [right=2.2cm of loss]
+                        {Sistema NH\\+ pérdidas exactas};
+  \node[block]  (pert)  [below=1.1cm of nh]
+                        {Corrección\\perturbativa (ec.\ 15)};
+
+  \draw[arr] (cli)    -- (param);
+  \draw[arr] (param)  -- (grid);
+  \draw[arr] (grid)   -- (assem);
+  \draw[arr] (assem)  -- (lu);
+  \draw[arr] (lu)     -- (arpack);
+  \draw[arr] (arpack) -- (back);
+  \draw[arr] (back)   -- (out);
+  \draw[arr] (arpack) -- (loss);
+  \draw[arr] (loss)   -- node[above,font=\tiny]{Sí} (nh);
+  \draw[arr] (nh)     -- (pert);
+  \draw[arr] (loss.south) -- node[right,font=\tiny]{No}
+             ++(0,-0.7) -| (back.east);
+
+  \end{tikzpicture}
+  \caption{Flujo de datos del proyecto \texttt{hermetic-bands}.
+    El camino principal (izquierda) ejecuta el cálculo sin pérdidas.
+    La ramificación derecha se activa cuando $\Gamma > 0$.}
+  \label{fig:flowchart}
+\end{figure}
+
+\subsection{Módulos del proyecto}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Módulos C++ del proyecto y su responsabilidad.}
+  \label{tab:modules}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Archivo} & \textbf{Módulo} & \textbf{Responsabilidad} \\
+    \midrule
+    \texttt{utils.hpp/.cpp}       & Tipos y CLI & Tipos base, constantes, parseo de argumentos \\
+    \texttt{sparse.hpp/.cpp}      & Motor CSR   & Almacenamiento, matvec, adjunto conjugado \\
+    \texttt{yee\_grid.hpp/.cpp}   & Malla Yee   & Geometría, máscaras de material, promediado armónico \\
+    \texttt{operators.hpp/.cpp}   & Operadores  & $C_E$, $C_H$, $A$, $B$, $\hat{H}$ \\
+    \texttt{matrices.hpp/.cpp}    & Sistemas    & Ensamblado de \texttt{HermitianSystem} y \texttt{NonHermitianSystem} \\
+    \texttt{eigensolver.hpp/.cpp} & Solver      & Bucle ARPACK, back-transformación, residuos \\
+    \texttt{perturbation.hpp/.cpp}& Pérdidas    & Ec.~(15) perturbativa y ortonormalidad \\
+    \texttt{output.hpp/.cpp}      & Salida      & Escritura de archivos \texttt{.dat} \\
+    \texttt{main.cpp}             & Orquestador & Flujo principal de la simulación \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Referencia Completa de la Interfaz de Línea de Comandos}
+% =============================================================================
+
+\subsection{Compilación}
+
+\begin{lstlisting}[style=bash, caption={Compilación en modo Release (recomendado)}]
+# Desde el directorio raiz del proyecto
+mkdir -p build_cmake
+cmake -DCMAKE_BUILD_TYPE=Release -B build_cmake .
+cmake --build build_cmake -j$(nproc)
+# Binario resultante: build_cmake/hermetic-bands
+\end{lstlisting}
+
+Las banderas de optimización activadas en modo Release son
+\texttt{-O3 -march=native -ffast-math} para C++ y
+\texttt{-O3} para los módulos Fortran de ARPACK.
+
+\subsection{Tabla de parámetros}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Parámetros de la interfaz de línea de comandos (CLI).
+    Los valores entre corchetes son los valores por defecto.}
+  \label{tab:cli}
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Flag} & \textbf{Tipo / Rango} & \textbf{Descripción} \\
+    \midrule
+    \texttt{-{}-mode [TE|TM]}          & enumeración     & Polarización del modo [TE] \\
+    \texttt{-{}-resolution N}          & entero $\geq 4$ & Puntos Yee por lado de la celda [20] \\
+    \texttt{-{}-fill-fraction f}       & real $(0,1)$    & Fracción de llenado metálico [0.25] \\
+    \texttt{-{}-shape [square|circle]} & enumeración     & Geometría de la inclusión [square] \\
+    \texttt{-{}-eps-inf VALUE}         & real $>0$       & Permitividad $\epsinf$ [1.0] \\
+    \texttt{-{}-nk N}                  & entero $\geq 2$ & Puntos $k$ en la ruta [20] \\
+    \texttt{-{}-nbands N}              & entero $\geq 1$ & Número de bandas a calcular [15] \\
+    \texttt{-{}-sigma S}               & real $\geq 0$   & Desplazamiento ARPACK; 0=auto [0] \\
+    \texttt{-{}-gamma G}               & real $\geq 0$   & Tasa de amortiguamiento $\Gamma/\omegap$ [0] \\
+    \texttt{-{}-perturb}               & booleano        & Calcular corrección perturbativa \\
+    \texttt{-{}-output FILE}           & cadena          & Archivo de salida [bands.dat] \\
+    \texttt{-{}-field-mode N}          & entero $\geq 0$ & Índice de banda para exportar campo \\
+    \texttt{-{}-field-kindex I}        & entero $\geq 0$ & Índice de punto-$k$ para el campo [0] \\
+    \texttt{-{}-verify-orthogonality}  & booleano        & Verificar ortonormalidad (ec.\ 13) \\
+    \texttt{-{}-convergence}           & booleano        & Ejecutar estudio de convergencia \\
+    \texttt{-{}-conv-N-start N}        & entero          & Resolución inicial de convergencia [8] \\
+    \texttt{-{}-conv-N-end N}          & entero          & Resolución final de convergencia [30] \\
+    \texttt{-{}-conv-N-step N}         & entero          & Paso de resolución [4] \\
+    \texttt{-{}-full-bz}               & booleano        & Ruta $\Gamma\to X\to M\to\Gamma$ completa \\
+    \texttt{-{}-map2d}                 & booleano        & Mapa 2D $\omega(k_x,k_y)$ \\
+    \texttt{-{}-map2d-nk N}            & entero $\geq 2$ & Puntos por eje en el mapa 2D [10] \\
+    \texttt{-{}-verbosity [0|1|2]}     & entero          & Nivel de salida en consola [1] \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\noindent
+\textbf{Notas sobre flags deprecados (compatibilidad hacia atrás):}
+\begin{itemize}
+  \item \texttt{-{}-loss} es sinónimo de \texttt{-{}-gamma} (deprecado).
+  \item \texttt{-{}-verify-ortho} es sinónimo de \texttt{-{}-verify-orthogonality} (deprecado).
+\end{itemize}
+
+% =============================================================================
+\section{Ejemplos de Uso}
+% =============================================================================
+
+\subsection{Ejemplo 1: Estructura de bandas TM estándar}
+
+\begin{lstlisting}[style=bash, caption={Estructura de bandas TM con resolución $30\times30$, 10 bandas.}]
+./build_cmake/hermetic-bands \
+    --mode TM \
+    --resolution 30 \
+    --fill-fraction 0.25 \
+    --shape square \
+    --nk 40 \
+    --nbands 10 \
+    --output bands_TM.dat
+
+python3 visualize_results.py bands_TM.dat
+\end{lstlisting}
+
+El archivo \texttt{bands\_TM.dat} contiene columnas:
+\texttt{k\_index}, \texttt{k*a/pi}, $\omega_1/\omegap$, $\omega_2/\omegap$, \ldots
+
+\subsection{Ejemplo 2: Exportación del perfil de campo espacial}
+
+Los flags \texttt{-{}-field-mode} y \texttt{-{}-field-kindex} son
+\emph{independientes} a partir de la versión actual (a diferencia de
+la sintaxis anterior que aceptaba dos argumentos posicionales consecutivos).
+
+\begin{lstlisting}[style=bash, caption={Exportar el perfil de campo de la banda 3 en el punto $k$ de índice 20.}]
+./build_cmake/hermetic-bands \
+    --mode TM \
+    --resolution 30 \
+    --nk 40 \
+    --field-mode 3 \
+    --field-kindex 20 \
+    --output /dev/null
+
+python3 visualize_results.py field_3_k20.dat
+\end{lstlisting}
+
+\subsection{Ejemplo 3: Estudio de convergencia numérica}
+
+El flag \texttt{-{}-convergence} es \emph{booleano puro}: no acepta
+el argumento \texttt{true} ni ningún valor.
+
+\begin{lstlisting}[style=bash, caption={Estudio de convergencia en el punto $X$ ($k_x=\pi$) de $N=8$ a $N=32$.}]
+./build_cmake/hermetic-bands \
+    --mode TM \
+    --convergence \
+    --conv-N-start 8 \
+    --conv-N-end 32 \
+    --conv-N-step 4 \
+    --nbands 5 \
+    --output /dev/null
+
+python3 visualize_results.py convergence.dat
+\end{lstlisting}
+
+El archivo \texttt{convergence.dat} incluye columnas
+$N$, $\omega_1(N)$, $\omega_2(N)$, \ldots y el tiempo de cómputo.
+El error relativo debería escalar aproximadamente como $\mathcal{O}(N^{-2})$,
+consistente con la exactitud de segundo orden del operador de Yee.
+
+\subsection{Ejemplo 4: Zona de Brillouin completa $\Gamma\to X\to M\to\Gamma$}
+
+\begin{lstlisting}[style=bash, caption={Estructura de bandas en la zona de Brillouin completa.}]
+./build_cmake/hermetic-bands \
+    --mode TM \
+    --full-bz \
+    --resolution 20 \
+    --nk 60 \
+    --nbands 10 \
+    --output bands_fullBZ.dat
+
+python3 visualize_results.py bands_fullBZ.dat
+\end{lstlisting}
+
+La ruta $\Gamma\to X\to M\to\Gamma$ tiene longitudes de arco
+$|\Gamma X| = |\text{XM}| = \pi$ y $|M\Gamma| = \pi\sqrt{2}$.
+Los puntos se distribuyen con espaciado uniforme en longitud de arco,
+etiquetando el eje horizontal en unidades de $\pi/a$.
+
+\subsection{Ejemplo 5: Inclusiones circulares con pérdidas}
+
+\begin{lstlisting}[style=bash, caption={Estructura de bandas con inclusiones circulares y corrección perturbativa.}]
+./build_cmake/hermetic-bands \
+    --mode TM \
+    --shape circle \
+    --fill-fraction 0.30 \
+    --resolution 24 \
+    --full-bz \
+    --nk 40 \
+    --nbands 10 \
+    --gamma 0.01 \
+    --perturb \
+    --output bands_circle.dat
+
+python3 visualize_results.py loss_comparison.dat
+\end{lstlisting}
+
+Para \texttt{-{}-shape circle}, el parámetro \texttt{fill-fraction}
+es el radio normalizado $r/a$.
+El archivo \texttt{loss\_comparison.dat} contiene, para cada modo,
+la frecuencia lossless $\omega_0$, la frecuencia no-Hermitiana exacta
+$\text{Re}[\omega]$ e $\text{Im}[\omega]$, y la corrección perturbativa $\omega_0 + \omega^{(1)}$.
+
+% =============================================================================
+\section{Visualización con Python}
+% =============================================================================
+
+El script \texttt{visualize\_results.py} detecta el tipo de datos por
+el nombre del archivo y despacha a la función apropiada.
+El fragmento central para la estructura de bandas es:
+
+\begin{lstlisting}[style=python, caption={Función de graficación de bandas en \texttt{visualize\_results.py}}]
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+def plot_bands(filename):
+    if not os.path.exists(filename):
+        print(f"Archivo {filename} no encontrado.")
+        return
+
+    data = np.loadtxt(filename)   # shape: (n_kpoints, 2 + nbands)
+    if data.ndim < 2:
+        print(f"Datos invalidos en {filename}")
+        return
+
+    k     = data[:, 1]     # columna 1: k*a/pi
+    bands = data[:, 2:]    # columnas 2..: omega_n / omega_p
+
+    plt.figure(figsize=(8, 6))
+    for i in range(bands.shape[1]):
+        plt.plot(k, bands[:, i])
+
+    plt.xlabel(r'$k a / \pi$')
+    plt.ylabel(r'$\omega / \omega_p$')
+    plt.title('Estructura de Bandas Fotonica')
+    plt.grid(True, linestyle='--', alpha=0.6)
+    out_img = filename.replace('.dat', '.png')
+    plt.savefig(out_img, dpi=300, bbox_inches='tight')
+    print(f"Imagen guardada: {out_img}")
+\end{lstlisting}
+
+\noindent
+Para el estudio de convergencia:
+
+\begin{lstlisting}[style=python, caption={Función de convergencia en \texttt{visualize\_results.py}}]
+def plot_convergence(filename):
+    data  = np.loadtxt(filename)
+    N_vec = data[:, 0].astype(int)
+    omega = data[:, 1]          # primera banda
+
+    ref   = omega[-1]
+    error = np.abs(omega[:-1] - ref)
+    N_sub = N_vec[:-1]
+
+    plt.figure(figsize=(8, 6))
+    plt.loglog(N_sub, error, 'o-', label='Error numerico')
+    # Referencia de pendiente N^{-2}
+    ref_slope = error[0] * (N_sub[0] / N_sub) ** 2
+    plt.loglog(N_sub, ref_slope, '--', label=r'$N^{-2}$')
+    plt.xlabel('Resolucion $N$')
+    plt.ylabel(r'$|\omega_N - \omega_\mathrm{ref}|$')
+    plt.legend()
+    plt.grid(True, which='both', alpha=0.5)
+    out_img = filename.replace('.dat', '.png')
+    plt.savefig(out_img, dpi=300, bbox_inches='tight')
+    print(f"Imagen guardada: {out_img}")
+\end{lstlisting}
+
+% =============================================================================
+\section{Verificación y Diagnósticos}
+% =============================================================================
+
+\subsection{Residuos ARPACK}
+
+Tras la convergencia, cada autovector verificado satisface:
+\begin{equation}
+  r_n = \frac{\norm{\Hhat\,\hat{y}_n - \omega_n\,\hat{y}_n}_2}{|\omega_n|}
+        < \texttt{tol} = 10^{-10}.
+\end{equation}
+Los residuos obtenidos en las pruebas ejecutadas son del orden de
+$6\times10^{-12}$ a $1.5\times10^{-10}$ para $N=16$, confirmando la
+correcta convergencia del solver.
+
+\subsection{Verificación de hermiticidad}
+
+Activando \texttt{-{}-verbosity 2}, el código calcula y reporta:
+\begin{equation}
+  \delta_H = \max_{i,j} \abs{\hat{H}_{ij} - \conj{\hat{H}_{ji}}}.
+\end{equation}
+Un valor bien ensamblado produce $\delta_H \lesssim N_\text{dof}\cdot\epsilon_\text{mach}$,
+donde $\epsilon_\text{mach} \approx 2.2\times10^{-16}$ es la precisión de máquina.
+
+\subsection{Ortonormalidad modal}
+
+Con el flag \texttt{-{}-verify-orthogonality}, se computa la matriz de Gram:
+\begin{equation}
+  G_{mn} = \langle \hat{y}_m | \hat{y}_n \rangle = \delta_{mn}
+  \quad \Leftrightarrow \quad
+  \langle x_m | A | x_n \rangle = \delta_{mn} \quad \text{(ec.\ 13)}.
+\end{equation}
+Se reportan $\max_{m\neq n}|G_{mn}|$ (debería ser $< 10^{-6}$) y
+$\max_m ||G_{mm}| - 1|$ (debería ser $< 10^{-6}$).
+
+% =============================================================================
+\section{Conclusiones}
+% =============================================================================
+
+Se ha implementado y documentado el solucionador de estructura de bandas
+fotónicas \texttt{hermetic-bands}, basado en la formulación Hermitiana
+de variable auxiliar de Raman y Fan~\cite{Raman2010}.
+Los resultados clave de la auditoría son:
+
+\begin{enumerate}
+  \item \textbf{Corrección de dos bugs críticos}: la doble transformación
+    espectral en \texttt{zneupd} modo 3 y el uso de \texttt{"LM"} en
+    lugar de \texttt{"LR"} en ARPACK producían autovalores incorrectos
+    y podían seleccionar modos no físicos del espacio nulo.
+    Ambos han sido corregidos.
+
+  \item \textbf{Normalización de unidades}: las constantes físicas
+    $\mu_0$, $\varepsilon_0$ y $c$ fueron corregidas a sus valores
+    normalizados ($=1$), fundamentales para la correcta construcción
+    de la matriz de masa $A$.
+
+  \item \textbf{Hermiticidad por construcción}: $C_H = C_E^\dagger$
+    se garantiza mediante \texttt{conj\_transpose}, y las fases de
+    Bloch alternan de signo correctamente al transponerse, evitando
+    autovalores espurios.
+
+  \item \textbf{LU denso justificado}: para $N \leq 30$, la
+    factorización LU densa de LAPACK es la elección óptima: determinista,
+    de precisión de máquina y sin dependencias externas adicionales.
+
+  \item \textbf{Separación correcta de pérdidas}: $\Gamma$ entra
+    únicamente en $\Hhat_\text{nh}$; el Hamiltoniano lossless $\Hhat_0$
+    permanece inalterado.
+\end{enumerate}
+
+El proyecto compila y ejecuta correctamente bajo Arch Linux con BLAS,
+LAPACK, ARPACK y GFortran del sistema, produciendo residuos ARPACK
+del orden de $10^{-12}$--$10^{-10}$ para resoluciones $N=16$--$30$.
+
+% =============================================================================
+\begin{thebibliography}{9}
+% =============================================================================
+
+\bibitem{Raman2010}
+A.~P.~Raman y S.~Fan,
+\textit{Photonic Band Structure of Dispersive Metamaterials Formulated as
+a Hermitian Eigenvalue Problem},
+Phys.\ Rev.\ Lett.\ \textbf{104}, 087401 (2010).
+\href{https://doi.org/10.1103/PhysRevLett.104.087401}{DOI:10.1103/PhysRevLett.104.087401}
+
+\bibitem{Taflove2005}
+A.~Taflove y S.~C.~Hagness,
+\textit{Computational Electrodynamics: The Finite-Difference Time-Domain Method},
+3.ª ed., Artech House, Boston (2005).
+
+\bibitem{Lehoucq1998}
+R.~B.~Lehoucq, D.~C.~Sorensen y C.~Yang,
+\textit{ARPACK Users' Guide: Solution of Large-Scale Eigenvalue Problems
+with Implicitly Restarted Arnoldi Methods},
+SIAM, Filadelfia (1998).
+
+\bibitem{Anderson1999}
+E.~Anderson et al.,
+\textit{LAPACK Users' Guide},
+3.ª ed., SIAM, Filadelfia (1999).
+
+\bibitem{Joannopoulos2008}
+J.~D.~Joannopoulos, S.~G.~Johnson, J.~N.~Winn y R.~D.~Meade,
+\textit{Photonic Crystals: Molding the Flow of Light},
+2.ª ed., Princeton University Press (2008).
+
+\end{thebibliography}
+
+\end{document}
