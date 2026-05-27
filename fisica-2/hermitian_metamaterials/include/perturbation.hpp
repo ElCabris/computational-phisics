@@ -32,8 +32,12 @@
 //
 // Substituting and expanding in terms of physical fields (x = S⁻¹ ŷ₀):
 //
-//   ω₁ = (iΓ/2) × [ ∫_metal |V₀(r)|² / (ε∞ ωp²) dr ]
-//                 / [ ∫ W₀(r) dr ]                         (eq. 15)
+//   ω₁ = −(iΓ/2) × [ ∫_metal |V₀(r)|² / (ε∞ ωp²) dr ]
+//                  / [ ∫ W₀(r) dr ]                        (eq. 15)
+//
+// SIGN CONVENTION (e^{-iωt}):
+//   Im[ω₁] < 0 ↔ exponential decay e^{Im[ω₁]t} ↔ physical damping.
+//   The (−iΓ/2) factor ensures Im[ω₁] = −(Γ/2)·ratio < 0 for Γ > 0.
 //
 // where the modal energy density is:
 //
@@ -186,12 +190,7 @@ compare_loss_methods(const EigenResult&        lossless,
 // up to scaling, but testing both separately isolates where errors arise.
 // =============================================================================
 
-struct OrthogonalityResult {
-    Real max_off_diagonal;      // max_{m≠n} |G_{mn}|
-    Real max_diagonal_error;    // max_n ||G_{nn}| − 1|
-    int  n_modes;
-    bool passed;                // true if both metrics < threshold
-};
+// OrthogonalityResult is defined in utils.hpp (included above via eigensolver.hpp).
 
 // Test <ŷₘ|ŷₙ> = δₘₙ  (standard inner product on ARPACK eigenvectors).
 OrthogonalityResult

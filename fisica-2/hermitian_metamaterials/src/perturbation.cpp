@@ -187,8 +187,15 @@ PerturbResult compute_perturbative_loss(Real        omega0,
 
     check(den > 0.0, "compute_perturbative_loss: zero energy density.");
 
-    // ω₁ = (iΓ/2) × (∫|V|²/(ε∞ωp²)) / (∫W₀)
-    const Complex omega1 = Complex{0.0, gamma / 2.0} * (num / den);
+    // ω₁ = −(iΓ/2) × (∫|V|²/(ε∞ωp²)) / (∫W₀)   [eq. 15, Raman & Fan 2010]
+    //
+    // Sign fix: with the e^{-iωt} time convention, physical damping requires
+    // Im[ω₁] < 0.  The perturbation δĤ = −iΓ·(positive diagonal) contributes
+    // ω₁ = <ŷ|δĤ|ŷ> = −iΓ × (positive) → Im[ω₁] < 0.  The factor of ½
+    // comes from the energy normalization (see perturbation.hpp §2).
+    // Using +iΓ/2 (the old code) gave Im[ω₁] > 0, i.e., growing modes, and
+    // Q = ∞ (the (omega1.imag() < 0) guard below was never satisfied).
+    const Complex omega1 = Complex{0.0, -gamma / 2.0} * (num / den);
 
     PerturbResult r;
     r.omega0  = omega0;

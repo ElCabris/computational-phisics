@@ -100,6 +100,23 @@ HermitianSystem assemble_hermitian(const YeeGrid& g,
     sys.n_nullspace = count_nullspace_dof(sys.H_hat);
     sys.sigma       = choose_sigma(sys.H_hat, g.params.omega_p, sigma_shift);
 
+    // ── Hermiticity diagnostic ────────────────────────────────────────────────
+    // Verifies ||Ĥ - Ĥ†||_max / ||Ĥ||_F ≈ 0.
+    // A correct assembly gives values below O(N · ε_machine) ≈ N × 2.2e-16.
+    // Active only at verbosity >= 2 to avoid overhead in production runs.
+    // NOTE: this is a MATRIX property check (eq. 12 of Raman & Fan), distinct
+    //       from modal orthogonality (eq. 13) which requires eigenvectors.
+    if (g.params.verbosity >= 2) {
+        const Real herm_err = check_hermitian(sys.H_hat);
+        const Real frob     = frobenius_norm(sys.H_hat);
+        const Real rel_err  = (frob > 0.0) ? herm_err / frob : herm_err;
+        std::cout << "  [hermiticity] ||Ĥ - Ĥ†||_max = " << herm_err
+                  << "  (rel/Frob = " << rel_err << ")\n";
+        if (herm_err > 1e-10 * frob)
+            std::cerr << "  [WARNING] Hermiticity error exceeds 1e-10 × ||Ĥ||_F. "
+                         "Check Bloch phase signs in operators.\n";
+    }
+
     return sys;
 }
 
@@ -132,49 +149,52 @@ NonHermitianSystem assemble_nonhermitian(const YeeGrid& g,
 
     const Int N2 = g.n_dof;
 
+    // ── add_vv_diag: add δĤ_{VV} = −iΓ·s_inv² to ALL metallic V nodes ────────
+    //
+    // FIX (was: bug that only added the perturbation to the FIRST metallic node):
+    //
+    // In the lossless system, B[VV] = 0 for all metallic nodes, therefore
+    // Ĥ₀[VV] = S⁻¹·0·S⁻¹ = 0 — no diagonal entry exists in the CSR structure.
+    // The old code searched for the diagonal, and when not found (!found), it
+    // rebuilt the COO with ONE new entry and then `break`-ed out of the loop,
+    // silently skipping all remaining metallic nodes.
+    //
+    // Correct approach: collect δ for ALL metallic nodes first, then do a
+    // single COO rebuild that inserts all of them at once.  coo_to_csr() sums
+    // duplicate (row,col) pairs, so this is safe even if a diagonal already
+    // exists (future-proof).
     auto add_vv_diag = [&](int blk) {
+        // Pass 1: collect (global_row, delta) for every metallic V node.
+        COOBuffer new_diag;
         for (Int k = 0; k < N2; ++k) {
             if (!g.metal_mask[static_cast<std::size_t>(k)]) continue;
             const Int global_k = block_offset(blk, N2) + k;
-            // δĤ_{kk} = s_inv[k]² × (−iΓ)
             const Real si = h0.sqrtA_inv[static_cast<std::size_t>(global_k)];
+            // δĤ_{kk} = s_inv[k]² × (−iΓ) = −iΓ/(ε∞(r_k) ωp²(r_k))
             const Complex delta = Complex{0.0, -gamma} * (si * si);
-
-            // Find the diagonal entry in the CSR row and add delta.
-            // If not present (zero diagonal), insert via COO rebuild.
-            // For efficiency, we search the stored row.
-            bool found = false;
-            const Int rs = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(global_k)];
-            const Int re = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(global_k + 1)];
-            for (Int ki = rs; ki < re; ++ki) {
-                if (sys.H_hat_nh.col_ind[static_cast<std::size_t>(ki)] == global_k) {
-                    sys.H_hat_nh.val[static_cast<std::size_t>(ki)] += delta;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // Diagonal was structurally zero — rebuild via COO.
-                // This path should not be reached for metallic V nodes since
-                // Ĥ₀_{VV} is always zero there (they are null-space DOFs in the
-                // lossless case), so inserting delta here adds the entry.
-                COOBuffer buf;
-                coo_reserve(buf, sys.H_hat_nh.nrows, 5);
-                for (Int r = 0; r < sys.H_hat_nh.nrows; ++r) {
-                    const Int s2 = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(r)];
-                    const Int e2 = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(r + 1)];
-                    for (Int ki = s2; ki < e2; ++ki)
-                        buf.push_back({r,
-                            sys.H_hat_nh.col_ind[static_cast<std::size_t>(ki)],
-                            sys.H_hat_nh.val[static_cast<std::size_t>(ki)]});
-                }
-                buf.push_back({global_k, global_k, delta});
-                sys.H_hat_nh = coo_to_csr(buf,
-                                           sys.H_hat_nh.nrows,
-                                           sys.H_hat_nh.ncols);
-                break;   // restart outer loop not needed; COO rebuild handles all
-            }
+            new_diag.push_back({global_k, global_k, delta});
         }
+        if (new_diag.empty()) return;   // no metallic nodes in this block
+
+        // Pass 2: single COO rebuild — copy all existing non-zeros, then
+        //         append all V-V delta entries.  One coo_to_csr call handles
+        //         both insertion (structural zeros) and accumulation (if entry
+        //         already existed, which cannot happen in the lossless H_hat₀
+        //         but is handled correctly by the duplicate-sum rule).
+        COOBuffer buf;
+        coo_reserve(buf, sys.H_hat_nh.nrows, 5);
+        for (Int r = 0; r < sys.H_hat_nh.nrows; ++r) {
+            const Int s2 = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(r)];
+            const Int e2 = sys.H_hat_nh.row_ptr[static_cast<std::size_t>(r + 1)];
+            for (Int ki = s2; ki < e2; ++ki)
+                buf.push_back({r,
+                    sys.H_hat_nh.col_ind[static_cast<std::size_t>(ki)],
+                    sys.H_hat_nh.val[static_cast<std::size_t>(ki)]});
+        }
+        for (const auto& e : new_diag)
+            buf.push_back(e);
+
+        sys.H_hat_nh = coo_to_csr(buf, sys.H_hat_nh.nrows, sys.H_hat_nh.ncols);
     };
 
     if (g.params.mode == Polarization::TM) {
