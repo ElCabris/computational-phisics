@@ -1,0 +1,2 @@
+/usr/bin/ar qc libhermetic_fortran.a CMakeFiles/hermetic_fortran.dir/fortran/precision_kinds.f90.o CMakeFiles/hermetic_fortran.dir/fortran/arpack_interface.f90.o CMakeFiles/hermetic_fortran.dir/fortran/lanczos_helpers.f90.o
+/usr/bin/ranlib libhermetic_fortran.a

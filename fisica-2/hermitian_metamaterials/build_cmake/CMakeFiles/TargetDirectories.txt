@@ -1,0 +1,8 @@
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/hermetic_fortran.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/hermetic-bands.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/edit_cache.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/rebuild_cache.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/list_install_components.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/install.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/install/local.dir
+/home/elcabris/Documents/scientific-computing/period-6/computational-phisics/fisica-2/hermitian_metamaterials/build_cmake/CMakeFiles/install/strip.dir

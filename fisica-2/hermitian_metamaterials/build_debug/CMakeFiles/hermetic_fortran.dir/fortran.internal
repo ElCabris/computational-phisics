@@ -1,0 +1,5 @@
+# The fortran modules provided by this target.
+provides
+ arpack_interface.mod
+ lanczos_helpers.mod
+ precision_kinds.mod
